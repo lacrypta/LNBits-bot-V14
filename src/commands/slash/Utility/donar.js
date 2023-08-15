@@ -64,12 +64,11 @@ module.exports = {
                 const payment = await uw.payInvoice(outgoingInvoice.invoice);
 
                 if (payment) {
-                  const updatedRank = false;
-                  //   const updatedRank = await updateUserRank(
-                  //     Interaction.user.id,
-                  //     "pozo",
-                  //     amount.value
-                  //   );
+                  const updatedRank = await updateUserRank(
+                    Interaction.user.id,
+                    "pozo",
+                    amount.value
+                  );
 
                   const embed = new EmbedBuilder()
                     .setColor(`#0099ff`)
