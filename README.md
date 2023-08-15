@@ -25,3 +25,9 @@ POOL_ADDRESS=pozo@lacrypta.ar
 /top tipo: <"pozo" | "comunidad"> : Devuelve el ranking TOP 10 usuarios que enviaron sats
 /zap user: <user> monto: <integer> message: <string>: Regala sats a un usuario en discord
 ```
+
+# Start bot
+
+```
+yarn install & yarn start
+```
