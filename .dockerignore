@@ -9,4 +9,4 @@
 
 # Files
 /npm-debug.log
-.env
+.env.example

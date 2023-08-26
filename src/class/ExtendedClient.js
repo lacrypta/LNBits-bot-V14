@@ -3,6 +3,7 @@ const {
   Partials,
   Collection,
   GatewayIntentBits,
+  ActivityType,
 } = require("discord.js");
 const config = require("../config");
 const commands = require("../handlers/commands");
@@ -31,7 +32,8 @@ module.exports = class extends Client {
       presence: {
         activities: [
           {
-            name: "Lightning network BOT",
+            name: "Lightning Network",
+            type: "STREAMING",
           },
         ],
       },

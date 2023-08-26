@@ -88,7 +88,7 @@ module.exports = {
 
         const lnurlw = new LNURLw(userWallet.adminkey);
         const withdrawlLink = await lnurlw.createWithdrawlLink(
-          `Regalo de ${amount.value} sats de ${Interaction.user.username}`,
+          `Regalo de ${satsForUser} sats de ${Interaction.user.username}`,
           satsForUser,
           uses.value
         );
