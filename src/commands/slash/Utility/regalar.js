@@ -70,7 +70,10 @@ module.exports = {
 
     try {
       const um = new UserManager();
-      const userWallet = await um.getUserWallet(Interaction.user.id);
+      const userWallet = await um.getOrCreateWallet(
+        Interaction.user.username,
+        Interaction.user.id
+      );
 
       const uw = new UserWallet(userWallet.adminkey);
       const userWalletDetails = await uw.getWalletDetails();

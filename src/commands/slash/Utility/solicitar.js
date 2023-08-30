@@ -54,7 +54,10 @@ module.exports = {
 
     try {
       const um = new UserManager();
-      const userWallet = await um.getUserWallet(member.user.id);
+      const userWallet = await um.getOrCreateWallet(
+        member.user.username,
+        member.user.id
+      );
 
       const uw = new UserWallet(userWallet.adminkey);
       const invoiceDetails = await uw.createInvote(
