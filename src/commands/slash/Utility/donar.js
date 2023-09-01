@@ -49,12 +49,11 @@ module.exports = {
           const amount = Interaction.options.get(`monto`);
 
           const isValidAmount = validateAmountAndBalance(
-            Interaction,
             Number(amount?.value),
             userWalletDetails.balance
           );
 
-          if (isValidAmount) {
+          if (isValidAmount.status) {
             await Interaction.deferReply();
 
             try {
@@ -105,6 +104,10 @@ module.exports = {
               });
               return;
             }
+          } else {
+            Interaction.editReply({
+              content: isValidAmount.content,
+            });
           }
         } catch (err) {
           console.log(err);

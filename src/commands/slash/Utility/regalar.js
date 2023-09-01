@@ -79,12 +79,11 @@ module.exports = {
       const userWalletDetails = await uw.getWalletDetails();
 
       const isValidAmount = validateAmountAndBalance(
-        Interaction,
         Number(amount?.value),
         userWalletDetails.balance
       );
 
-      if (isValidAmount) {
+      if (isValidAmount.status) {
         await Interaction.deferReply();
         const ext = new Extensions(userWallet.user);
         await ext.enable(`withdraw`);
@@ -135,6 +134,10 @@ module.exports = {
             components: [row],
           });
         }
+      } else {
+        Interaction.editReply({
+          content: isValidAmount.content,
+        });
       }
     } catch (err) {
       console.log(err);

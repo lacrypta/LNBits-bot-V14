@@ -1,31 +1,28 @@
-const validateAmountAndBalance = (Interaction, amount, balance) => {
+const validateAmountAndBalance = (amount, balance) => {
   const formatUserBalance = balance / 1000;
 
-  if (amount <= 0) {
-    Interaction.reply({
-      content: `No puedes usar números negativos o flotantes`,
-      ephemeral: true,
-    });
-    return false;
-  }
+  if (amount <= 0)
+    return {
+      status: false,
+      content: "No puedes usar números negativos o flotantes",
+    };
 
-  if (amount > formatUserBalance) {
-    Interaction.reply({
+  if (amount > formatUserBalance)
+    return {
+      status: false,
       content: `No tienes saldo suficiente para realizar esta acción. \nRequerido: ${amount} - balance en tu billetera: ${formatUserBalance}`,
-      ephemeral: true,
-    });
-    return false;
-  }
+    };
 
-  if (formatUserBalance - amount <= 1) {
-    Interaction.reply({
+  if (formatUserBalance - amount <= 1)
+    return {
+      status: false,
       content: `Tu balance no puede quedar en 0. \n Debes dejar al menos 2 satoshis como respaldo para cubrir la comisión de lightning.`,
-      ephemeral: true,
-    });
-    return false;
-  }
+    };
 
-  return true;
+  return {
+    status: true,
+    content: "",
+  };
 };
 
 module.exports = {

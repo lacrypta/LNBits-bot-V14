@@ -78,12 +78,11 @@ module.exports = {
     const receiverWallet = new UserWallet(receiverWalletData.adminkey);
 
     const isValidAmount = validateAmountAndBalance(
-      Interaction,
       Number(sats),
       senderWalletDetails.balance
     );
 
-    if (isValidAmount) {
+    if (isValidAmount.status) {
       try {
         // await Interaction.deferReply();
         const invoiceDetails = await receiverWallet.createInvote(
@@ -109,6 +108,11 @@ module.exports = {
           ephemeral: true,
         });
       }
+    } else {
+      await Interaction.reply({
+        content: isValidAmount.content,
+        ephemeral: true,
+      });
     }
   },
 };
