@@ -10,6 +10,7 @@ const ExtendedClient = require("../../../class/ExtendedClient");
 const UserManager = require(`../../../class/UserManager.js`);
 const UserWallet = require(`../../../class/User.js`);
 const { AuthorConfig } = require("../../../utils/helperConfig");
+const { formatter } = require("../../../utils/helperFormatter");
 
 module.exports = {
   structure: new SlashCommandBuilder()
@@ -72,7 +73,7 @@ module.exports = {
         },
         {
           name: `monto (sats)`,
-          value: `${amount.value}`,
+          value: `${formatter(0,0).format(amount.value)}`,
         },
       ]);
 
