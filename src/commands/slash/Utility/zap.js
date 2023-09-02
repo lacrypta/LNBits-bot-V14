@@ -66,6 +66,14 @@ module.exports = {
       receiver.user.id
     );
 
+    if (senderWalletData.id === receiverWalletData.id) {
+      Interaction.reply({
+        content: `No puedes enviarte sats a vos mismo.`,
+        ephemeral: true,
+      });
+      return;
+    }
+
     if (!senderWalletData.id) {
       Interaction.reply({
         content: `Ocurrió un error`,
@@ -73,6 +81,7 @@ module.exports = {
       });
       return;
     }
+
     const senderWallet = new UserWallet(senderWalletData.adminkey);
     const senderWalletDetails = await senderWallet.getWalletDetails();
     const receiverWallet = new UserWallet(receiverWalletData.adminkey);

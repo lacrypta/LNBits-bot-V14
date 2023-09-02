@@ -113,7 +113,9 @@ module.exports = {
                 }`,
               },
               {
-                name: `Restantes: ${amount.value}/${amount.value} sats`,
+                name: `Restantes: ${satsForUser * uses.value}/${
+                  satsForUser * uses.value
+                } sats`,
                 value: `${":x:".repeat(uses.value)} \n\n`,
               },
             ])
@@ -135,15 +137,20 @@ module.exports = {
           });
         }
       } else {
-        Interaction.editReply({
+        Interaction.reply({
           content: isValidAmount.content,
+          ephemeral: true,
         });
       }
     } catch (err) {
       console.log(err);
-      Interaction.editReply({
-        content: `Ocurrió un error`,
-      });
+      Interaction.deferred
+        ? Interaction.editReply({
+            content: `Ocurrió un error`,
+          })
+        : Interaction.reply({
+            content: "Ocurrio un error",
+          });
     }
   },
 };

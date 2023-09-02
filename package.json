@@ -16,6 +16,7 @@
     "discord.js": "^14.12.1",
     "dotenv": "^16.3.1",
     "lnurl-pay": "^2.3.0",
+    "lodash": "^4.17.21",
     "mongoose": "^7.3.1",
     "node-fetch": "^2.6.1",
     "qrcode": "^1.5.3",
