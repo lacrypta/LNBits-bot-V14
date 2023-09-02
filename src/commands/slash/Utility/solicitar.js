@@ -36,24 +36,17 @@ module.exports = {
   run: async (client, Interaction, args) => {
     const amount = Interaction.options.get(`monto`);
     const description = Interaction.options.get(`descripcion`);
-    let member;
 
-    if (amount.value <= 0) {
-      Interaction.reply({
-        content: `No se permiten saldos negativos`,
-        ephemeral: true,
-      });
-      return;
-    }
+    if (amount.value <= 0)
+      return EphemeralMessageResponse(
+        Interaction,
+        "No se permiten saldos negativos"
+      );
 
     await Interaction.deferReply();
-    try {
-      member = await Interaction.guild.members.fetch(Interaction.user.id);
-    } catch (err) {
-      console.log(err);
-    }
 
     try {
+      const member = await Interaction.guild.members.fetch(Interaction.user.id);
       const um = new UserManager();
       const userWallet = await um.getOrCreateWallet(
         member.user.username,
@@ -73,7 +66,7 @@ module.exports = {
         },
         {
           name: `monto (sats)`,
-          value: `${formatter(0,0).format(amount.value)}`,
+          value: `${formatter(0, 0).format(amount.value)}`,
         },
       ]);
 
@@ -91,10 +84,7 @@ module.exports = {
       });
     } catch (err) {
       console.log(err);
-      Interaction.editReply({
-        content: `Ocurrió un error`,
-        ephemeral: true,
-      });
+      return EphemeralMessageResponse(Interaction, "Ocurrió un error");
     }
   },
 };

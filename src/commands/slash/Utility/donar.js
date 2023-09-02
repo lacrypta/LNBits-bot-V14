@@ -14,6 +14,7 @@ const { updateUserRank } = require("../../../handlers/donate.js");
 const { AuthorConfig } = require("../../../utils/helperConfig.js");
 const {
   validateAmountAndBalance,
+  EphemeralMessageResponse,
 } = require("../../../utils/helperFunctions.js");
 
 module.exports = {
@@ -33,6 +34,7 @@ module.exports = {
    */
   run: async (client, Interaction, args) => {
     const um = new UserManager();
+
     try {
       const senderData = await Interaction.guild.members.fetch(
         Interaction.user.id
@@ -42,86 +44,64 @@ module.exports = {
         Interaction.user.id
       );
 
-      if (userWallet.adminkey) {
-        const uw = new UserWallet(userWallet.adminkey);
-        try {
-          const userWalletDetails = await uw.getWalletDetails();
-          const amount = Interaction.options.get(`monto`);
+      const uw = new UserWallet(userWallet.adminkey);
 
-          const isValidAmount = validateAmountAndBalance(
-            Number(amount?.value),
-            userWalletDetails.balance
+      const userWalletDetails = await uw.getWalletDetails();
+      const amount = Interaction.options.get(`monto`);
+
+      const isValidAmount = validateAmountAndBalance(
+        Number(amount?.value),
+        userWalletDetails.balance
+      );
+
+      if (!isValidAmount.status)
+        return EphemeralMessageResponse(Interaction, isValidAmount.content);
+
+      await Interaction.deferReply();
+
+      const outgoingInvoice = await uw.createOutgoingInvoice(
+        process.env.POOL_ADDRESS,
+        amount.value
+      );
+
+      if (outgoingInvoice && outgoingInvoice.invoice) {
+        const payment = await uw.payInvoice(outgoingInvoice.invoice);
+
+        if (payment) {
+          const updatedRank = await updateUserRank(
+            Interaction.user.id,
+            "pozo",
+            amount.value
           );
 
-          if (isValidAmount.status) {
-            await Interaction.deferReply();
-
-            try {
-              const outgoingInvoice = await uw.createOutgoingInvoice(
-                process.env.POOL_ADDRESS,
-                amount.value
-              );
-
-              if (outgoingInvoice && outgoingInvoice.invoice) {
-                const payment = await uw.payInvoice(outgoingInvoice.invoice);
-
-                if (payment) {
-                  const updatedRank = await updateUserRank(
-                    Interaction.user.id,
-                    "pozo",
-                    amount.value
-                  );
-
-                  const embed = new EmbedBuilder()
-                    .setColor(`#0099ff`)
-                    .setAuthor(AuthorConfig)
-                    .setURL(`https://wallet.lacrypta.ar`)
-                    .addFields(
-                      {
-                        name: `Donación a ${process.env.POOL_ADDRESS}`,
-                        value: `${senderData.toString()} ha donado ${formatter(
-                          0,
-                          2
-                        ).format(amount.value)} satoshis al pozo!`,
-                      },
-                      {
-                        name: "Total donado",
-                        value:
-                          updatedRank && updatedRank.amount
-                            ? `${updatedRank.amount}`
-                            : "0",
-                      }
-                    );
-
-                  Interaction.editReply({ embeds: [embed] });
-                  return;
-                }
+          const embed = new EmbedBuilder()
+            .setColor(`#0099ff`)
+            .setAuthor(AuthorConfig)
+            .setURL(`https://wallet.lacrypta.ar`)
+            .addFields(
+              {
+                name: `Donación a ${process.env.POOL_ADDRESS}`,
+                value: `${senderData.toString()} ha donado ${formatter(
+                  0,
+                  2
+                ).format(amount.value)} satoshis al pozo!`,
+              },
+              {
+                name: "Total donado",
+                value:
+                  updatedRank && updatedRank.amount
+                    ? `${updatedRank.amount}`
+                    : "0",
               }
-            } catch (err) {
-              console.log(err);
-              Interaction.editReply({
-                content: `Ocurrió un error`,
-              });
-              return;
-            }
-          } else {
-            Interaction.editReply({
-              content: isValidAmount.content,
-            });
-          }
-        } catch (err) {
-          console.log(err);
-          Interaction.editReply({
-            content: `Ocurrió un error.`,
-          });
+            );
+
+          Interaction.editReply({ embeds: [embed] });
+          return;
         }
-      } else {
-        Interaction.editReply({
-          content: `No tienes una billetera`,
-        });
       }
     } catch (err) {
       console.log(err);
+      return EphemeralMessageResponse(Interaction, "Ocurrió un error");
     }
   },
 };

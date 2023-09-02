@@ -6,6 +6,7 @@ const ExtendedClient = require("../../../class/ExtendedClient");
 
 const UserManager = require(`../../../class/UserManager.js`);
 const UserWallet = require(`../../../class/User.js`);
+const { EphemeralMessageResponse } = require("../../../utils/helperFunctions");
 
 module.exports = {
   structure: new SlashCommandBuilder()
@@ -32,39 +33,21 @@ module.exports = {
         Interaction.user.id
       );
 
-      if (userWallet.adminkey) {
-        const uw = new UserWallet(userWallet.adminkey);
-        try {
-          const payUrl = Interaction.options.get(`lnurl`).value;
+      const uw = new UserWallet(userWallet.adminkey);
+      const payUrl = Interaction.options.get(`lnurl`).value;
 
-          if (payUrl) {
-            const payment = await uw.payInvoice(payUrl);
+      if (payUrl) {
+        const payment = await uw.payInvoice(payUrl);
 
-            if (payment)
-              Interaction.editReply({
-                content: `Pagaste la factura ${payUrl}`,
-                ephemeral: true,
-              });
-          }
-        } catch (err) {
+        if (payment)
           Interaction.editReply({
-            content: `Ocurrió un error`,
+            content: `Pagaste la factura ${payUrl}`,
             ephemeral: true,
           });
-          console.log(err);
-        }
-      } else {
-        Interaction.editReply({
-          content: `No tienes una billetera`,
-          ephemeral: true,
-        });
       }
     } catch (err) {
       console.log(err);
-      Interaction.editReply({
-        content: `Ocurrió un error`,
-        ephemeral: true,
-      });
+      EphemeralMessageResponse(Interaction, "Ocurrió un error");
     }
   },
 };

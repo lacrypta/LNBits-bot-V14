@@ -25,6 +25,22 @@ const validateAmountAndBalance = (amount, balance) => {
   };
 };
 
+const handleBotResponse = async (Interaction, objConfig) =>
+  Interaction.deferred
+    ? await Interaction.editReply(objConfig)
+    : await Interaction.reply(objConfig);
+
+const EphemeralMessageResponse = async (Interaction, content) => {
+  const objectResponse = {
+    content,
+    ephemeral: true,
+  };
+
+  await handleBotResponse(Interaction, objectResponse);
+};
+
 module.exports = {
   validateAmountAndBalance,
+  handleBotResponse,
+  EphemeralMessageResponse,
 };
