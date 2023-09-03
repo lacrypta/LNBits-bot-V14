@@ -7,9 +7,10 @@ const {
 const ExtendedClient = require("../../../class/ExtendedClient");
 const QRCode = require(`qrcode`);
 
-const UserManager = require(`../../../class/UserManager.js`);
-const UserWallet = require(`../../../class/User.js`);
-const { EphemeralMessageResponse } = require("../../../utils/helperFunctions");
+const {
+  EphemeralMessageResponse,
+  getFormattedWallet,
+} = require("../../../utils/helperFunctions");
 
 module.exports = {
   structure: new SlashCommandBuilder()
@@ -29,33 +30,22 @@ module.exports = {
   run: async (client, Interaction, args) => {
     await Interaction.deferReply({ ephemeral: true });
     const amount = Interaction.options.get(`monto`);
-    let member;
 
-    if (amount.value <= 0) {
-      Interaction.reply({
-        content: `No se permiten saldos negativos`,
-        ephemeral: true,
-      });
-      return;
-    }
-
-    try {
-      member = await Interaction.guild.members.fetch(Interaction.user.id);
-    } catch (err) {
-      console.log(err);
-    }
-
-    try {
-      const um = new UserManager();
-      const userWallet = await um.getOrCreateWallet(
-        member.user.username,
-        member.user.id
+    if (amount.value <= 0)
+      return EphemeralMessageResponse(
+        Interaction,
+        "No se permiten saldos negativos"
       );
 
-      const uw = new UserWallet(userWallet.adminkey);
-      const invoiceDetails = await uw.createInvote(
+    try {
+      const { sdk } = await getFormattedWallet(
+        Interaction.user.username,
+        Interaction.user.id
+      );
+
+      const invoiceDetails = await sdk.createInvote(
         amount.value,
-        `Recargar ${amount.value} sats a la billetera de discord del usuario ${member.user.username}`
+        `Recargar ${amount.value} sats a la billetera de discord del usuario ${Interaction.user.username}`
       );
 
       const qrData = await QRCode.toDataURL(invoiceDetails.payment_request);

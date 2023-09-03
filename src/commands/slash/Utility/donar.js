@@ -1,20 +1,17 @@
 const {
   ChatInputCommandInteraction,
   SlashCommandBuilder,
-  ActionRowBuilder,
-  ButtonBuilder,
   EmbedBuilder,
 } = require("discord.js");
 const ExtendedClient = require("../../../class/ExtendedClient");
 
-const UserManager = require(`../../../class/UserManager.js`);
-const UserWallet = require(`../../../class/User.js`);
 const { formatter } = require("../../../utils/helperFormatter.js");
 const { updateUserRank } = require("../../../handlers/donate.js");
 const { AuthorConfig } = require("../../../utils/helperConfig.js");
 const {
   validateAmountAndBalance,
   EphemeralMessageResponse,
+  getFormattedWallet,
 } = require("../../../utils/helperFunctions.js");
 
 module.exports = {
@@ -33,25 +30,17 @@ module.exports = {
    * @param {[]} args
    */
   run: async (client, Interaction, args) => {
-    const um = new UserManager();
-
     try {
-      const senderData = await Interaction.guild.members.fetch(
-        Interaction.user.id
-      );
-      const userWallet = await um.getOrCreateWallet(
+      const userWallet = await getFormattedWallet(
         Interaction.user.username,
         Interaction.user.id
       );
 
-      const uw = new UserWallet(userWallet.adminkey);
-
-      const userWalletDetails = await uw.getWalletDetails();
       const amount = Interaction.options.get(`monto`);
 
       const isValidAmount = validateAmountAndBalance(
         Number(amount?.value),
-        userWalletDetails.balance
+        userWallet.balance
       );
 
       if (!isValidAmount.status)
@@ -59,13 +48,15 @@ module.exports = {
 
       await Interaction.deferReply();
 
-      const outgoingInvoice = await uw.createOutgoingInvoice(
+      const outgoingInvoice = await userWallet.sdk.createOutgoingInvoice(
         process.env.POOL_ADDRESS,
         amount.value
       );
 
       if (outgoingInvoice && outgoingInvoice.invoice) {
-        const payment = await uw.payInvoice(outgoingInvoice.invoice);
+        const payment = await userWallet.sdk.payInvoice(
+          outgoingInvoice.invoice
+        );
 
         if (payment) {
           const updatedRank = await updateUserRank(
@@ -81,7 +72,7 @@ module.exports = {
             .addFields(
               {
                 name: `Donación a ${process.env.POOL_ADDRESS}`,
-                value: `${senderData.toString()} ha donado ${formatter(
+                value: `${Interaction.user.toString()} ha donado ${formatter(
                   0,
                   2
                 ).format(amount.value)} satoshis al pozo!`,

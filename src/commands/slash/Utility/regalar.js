@@ -9,12 +9,12 @@ const ExtendedClient = require("../../../class/ExtendedClient");
 
 const Extensions = require(`../../../class/Extensions.js`);
 const LNURLw = require(`../../../class/LNURLw.js`);
-const UserManager = require(`../../../class/UserManager.js`);
-const UserWallet = require(`../../../class/User.js`);
+
 const { createFaucet } = require("../../../handlers/faucet.js");
 const {
   validateAmountAndBalance,
   EphemeralMessageResponse,
+  getFormattedWallet,
 } = require("../../../utils/helperFunctions");
 const { AuthorConfig } = require("../../../utils/helperConfig");
 
@@ -62,19 +62,14 @@ module.exports = {
       );
 
     try {
-      const member = await Interaction.guild.members.fetch(Interaction.user.id);
-      const um = new UserManager();
-      const userWallet = await um.getOrCreateWallet(
+      const userWallet = await getFormattedWallet(
         Interaction.user.username,
         Interaction.user.id
       );
 
-      const uw = new UserWallet(userWallet.adminkey);
-      const userWalletDetails = await uw.getWalletDetails();
-
       const isValidAmount = validateAmountAndBalance(
         Number(amount?.value),
-        userWalletDetails.balance
+        userWallet.balance
       );
 
       if (!isValidAmount.status)
@@ -93,7 +88,7 @@ module.exports = {
 
       if (withdrawlLink) {
         const addedFaucet = await createFaucet(
-          member.user.id,
+          Interaction.user.id,
           withdrawlLink.id
         );
 
@@ -102,7 +97,7 @@ module.exports = {
           .addFields([
             {
               name: `Faucet disponible:`,
-              value: `${member.toString()} está regalando ${satsForUser} sats a ${
+              value: `${Interaction.user.toString()} está regalando ${satsForUser} sats a ${
                 uses.value === 1
                   ? "1 persona"
                   : `${uses.value} personas \nPresiona reclamar para obtener tu premio. \n\n`

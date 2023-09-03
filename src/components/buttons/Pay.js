@@ -1,6 +1,8 @@
 const Discord = require(`discord.js`);
-const UserManager = require(`../../class/UserManager.js`);
-const UserWallet = require("../../class/User.js");
+const {
+  getFormattedWallet,
+  EphemeralMessageResponse,
+} = require("../../utils/helperFunctions");
 
 /*
 This command will pay a LNurl
@@ -12,8 +14,6 @@ module.exports = {
   customId: "pay",
 
   run: async (client, Interaction) => {
-    console.log(`button click by ${Interaction.user.id}`);
-
     try {
       const payUrl = Interaction.message.embeds[0].fields.find(
         (field) => field.name === "Solicitud de pago"
@@ -24,24 +24,20 @@ module.exports = {
       );
 
       if (payUrl) {
-        const u = new UserManager();
-        const user = await u.getOrCreateWallet(
+        const userWallet = await getFormattedWallet(
           Interaction.user.username,
           Interaction.user.id
         );
 
-        const uw = new UserWallet(user.adminkey);
-
-        const userWalletDetails = await uw.getWalletDetails();
-        const satsBalance = userWalletDetails.balance / 1000;
+        const satsBalance = userWallet.balance / 1000;
 
         if (satsBalance < amountOnSats.value) {
-          Interaction.reply({
-            content: `No tienes balance suficiente para pagar esta factura. \nTu balance: ${satsBalance} - Requerido: ${amountOnSats.value}`,
-            ephemeral: true,
-          });
+          return EphemeralMessageResponse(
+            Interaction,
+            `No tienes balance suficiente para pagar esta factura. \nTu balance: ${satsBalance} - Requerido: ${amountOnSats.value}`
+          );
         } else {
-          const payment = await uw.payInvoice(payUrl.value);
+          const payment = await userWallet.sdk.payInvoice(payUrl.value);
 
           if (payment) {
             const row = new Discord.ActionRowBuilder().addComponents([
@@ -59,6 +55,7 @@ module.exports = {
       }
     } catch (err) {
       console.log(err);
+      return EphemeralMessageResponse(Interaction, "Ocurrió un error");
     }
   },
 };

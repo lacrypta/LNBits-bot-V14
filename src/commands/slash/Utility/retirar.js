@@ -4,11 +4,10 @@ const {
 } = require("discord.js");
 const ExtendedClient = require("../../../class/ExtendedClient");
 
-const UserManager = require(`../../../class/UserManager.js`);
-const UserWallet = require(`../../../class/User.js`);
 const {
   validateAmountAndBalance,
   EphemeralMessageResponse,
+  getFormattedWallet,
 } = require("../../../utils/helperFunctions");
 
 module.exports = {
@@ -33,32 +32,32 @@ module.exports = {
    * @param {[]} args
    */
   run: async (client, Interaction, args) => {
-    const um = new UserManager();
     await Interaction.deferReply({ ephemeral: true });
 
     try {
-      const userWallet = await um.getOrCreateWallet(
+      const address = Interaction.options.get(`address`).value;
+      const amount = Number(Interaction.options.get(`monto`).value);
+
+      const userWallet = await getFormattedWallet(
         Interaction.user.username,
         Interaction.user.id
       );
 
-      const uw = new UserWallet(userWallet.adminkey);
-      const address = Interaction.options.get(`address`).value;
-      const amount = Number(Interaction.options.get(`monto`).value);
-      const senderWalletDetails = await uw.getWalletDetails();
-
       const isValidAmount = validateAmountAndBalance(
         amount,
-        senderWalletDetails.balance
+        userWallet.balance
       );
 
       if (!isValidAmount.status)
         return EphemeralMessageResponse(Interaction, isValidAmount.content);
 
-      const invoice = await uw.createOutgoingInvoice(address, amount);
+      const invoice = await userWallet.sdk.createOutgoingInvoice(
+        address,
+        amount
+      );
 
       if (invoice && invoice.invoice) {
-        const payment = await uw.payInvoice(invoice.invoice);
+        const payment = await userWallet.sdk.payInvoice(invoice.invoice);
 
         if (payment) {
           Interaction.editReply({
@@ -69,7 +68,10 @@ module.exports = {
       }
     } catch (err) {
       console.log(err);
-      return EphemeralMessageResponse(Interaction, "Ocurrió un error");
+      return EphemeralMessageResponse(
+        Interaction,
+        "Ocurrió un error. Los parámetros de este comando son <ln url o address> y <monto>. Si deseas pagar una factura utiliza el comando /pagar"
+      );
     }
   },
 };
