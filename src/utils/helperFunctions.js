@@ -1,3 +1,20 @@
+const UserWallet = require("../class/User");
+const UserManager = require("../class/UserManager");
+
+const getFormattedWallet = async (username, discord_id) => {
+  const um = new UserManager();
+  const walletKeys = await um.getOrCreateWallet(username, discord_id);
+
+  const sdk = new UserWallet(walletKeys.adminkey);
+  const walletDetails = await sdk.getWalletDetails();
+
+  return {
+    ...walletKeys,
+    balance: walletDetails.balance,
+    sdk,
+  };
+};
+
 const validateAmountAndBalance = (amount, balance) => {
   const formatUserBalance = balance / 1000;
 
@@ -40,6 +57,7 @@ const EphemeralMessageResponse = async (Interaction, content) => {
 };
 
 module.exports = {
+  getFormattedWallet,
   validateAmountAndBalance,
   handleBotResponse,
   EphemeralMessageResponse,

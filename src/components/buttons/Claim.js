@@ -8,7 +8,10 @@ const { updateUserRank } = require("../../handlers/donate.js");
 const { getFaucet, updateFaucet } = require("../../handlers/faucet.js");
 const { AuthorConfig } = require("../../utils/helperConfig.js");
 const dedent = require("dedent-js");
-const { EphemeralMessageResponse } = require("../../utils/helperFunctions.js");
+const {
+  EphemeralMessageResponse,
+  getFormattedWallet,
+} = require("../../utils/helperFunctions.js");
 
 const usersClaiming = {};
 const faucetDebouncedUpdate = {};
@@ -95,9 +98,6 @@ module.exports = {
         ? footerContent.substring(faucetSubStr + 1, footerContent.length)
         : false;
 
-    // console.log(`button click by ${Interaction.user.id}`);
-    // console.log(`want to pay ${faucetId}`);
-
     if (faucetId) {
       const faucet = await getFaucet(faucetId);
 
@@ -116,8 +116,7 @@ module.exports = {
       usersClaiming[Interaction.user.id] = true;
 
       try {
-        const um = new UserManager();
-        const userWallet = await um.getOrCreateWallet(
+        const userWallet = await getFormattedWallet(
           Interaction.user.username,
           Interaction.user.id
         );
@@ -164,13 +163,12 @@ module.exports = {
             500
           );
 
-          const uw = new UserWallet(userWallet.adminkey);
-          const userWalletDetails = await uw.getWalletDetails();
+          const new_user_details = await userWallet.sdk.getWalletDetails();
 
           EphemeralMessageResponse(
             Interaction,
             `Reclamaste el faucet con éxito, ahora tu balance es ${
-              userWalletDetails.balance / 1000
+              new_user_details.balance / 1000
             }`
           );
         }

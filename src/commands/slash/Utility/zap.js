@@ -1,15 +1,13 @@
 const {
   ChatInputCommandInteraction,
   SlashCommandBuilder,
-  EmbedBuilder,
 } = require("discord.js");
 const ExtendedClient = require("../../../class/ExtendedClient");
 
-const UserManager = require(`../../../class/UserManager.js`);
-const UserWallet = require(`../../../class/User.js`);
 const {
   validateAmountAndBalance,
   EphemeralMessageResponse,
+  getFormattedWallet,
 } = require("../../../utils/helperFunctions");
 const { updateUserRank } = require("../../../handlers/donate");
 
@@ -38,7 +36,6 @@ module.exports = {
    * @param {[]} args
    */
   run: async (client, Interaction, args) => {
-    const sender = Interaction;
     const receiver = Interaction.options.get(`user`);
     const amount = Interaction.options.get(`monto`);
     const message = Interaction.options.get(`message`)
@@ -52,52 +49,48 @@ module.exports = {
       );
 
     const sats = amount.value;
-    const senderData = await Interaction.guild.members.fetch(sender.user.id);
+
     const receiverData = await Interaction.guild.members.fetch(
       receiver.user.id
     );
 
-    const _ = new UserManager();
-    const senderWalletData = await _.getOrCreateWallet(
-      sender.user.username,
-      sender.user.id
+    const senderWallet = await getFormattedWallet(
+      Interaction.user.username,
+      Interaction.user.id
     );
-    const receiverWalletData = await _.getOrCreateWallet(
+
+    const receiverWallet = await getFormattedWallet(
       receiverData.user.username,
-      receiver.user.id
+      receiverData.user.id
     );
 
-    if (senderWalletData.id === receiverWalletData.id)
-      return EphemeralMessageResponse(
-        Interaction,
-        "No puedes enviarte sats a vos mismo."
-      );
-
-    if (!senderWalletData.id)
+    if (!senderWallet.id || !receiverWallet.id)
       return EphemeralMessageResponse(
         Interaction,
         "Ocurrió un error al obtener la información del usuario"
       );
 
-    try {
-      const senderWallet = new UserWallet(senderWalletData.adminkey);
-      const senderWalletDetails = await senderWallet.getWalletDetails();
-      const receiverWallet = new UserWallet(receiverWalletData.adminkey);
+    if (senderWallet.id === receiverWallet.id)
+      return EphemeralMessageResponse(
+        Interaction,
+        "No puedes enviarte sats a vos mismo."
+      );
 
+    try {
       const isValidAmount = validateAmountAndBalance(
         Number(sats),
-        senderWalletDetails.balance
+        senderWallet.balance
       );
 
       if (!isValidAmount.status)
         return EphemeralMessageResponse(Interaction, isValidAmount.content);
 
-      const invoiceDetails = await receiverWallet.createInvote(
+      const invoiceDetails = await receiverWallet.sdk.createInvote(
         sats,
         message.value
       );
 
-      const invoicePaymentDetails = await senderWallet.payInvoice(
+      const invoicePaymentDetails = await senderWallet.sdk.payInvoice(
         invoiceDetails.payment_request
       );
 
@@ -105,7 +98,7 @@ module.exports = {
         await updateUserRank(Interaction.user.id, "comunidad", sats);
 
         await Interaction.reply({
-          content: `${senderData.toString()} envió ${sats} satoshis a ${receiverData.toString()}`,
+          content: `${Interaction.user.toString()} envió ${sats} satoshis a ${receiverData.toString()}`,
         });
       }
     } catch (err) {

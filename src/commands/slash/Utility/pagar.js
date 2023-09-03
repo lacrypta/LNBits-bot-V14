@@ -4,9 +4,10 @@ const {
 } = require("discord.js");
 const ExtendedClient = require("../../../class/ExtendedClient");
 
-const UserManager = require(`../../../class/UserManager.js`);
-const UserWallet = require(`../../../class/User.js`);
-const { EphemeralMessageResponse } = require("../../../utils/helperFunctions");
+const {
+  EphemeralMessageResponse,
+  getFormattedWallet,
+} = require("../../../utils/helperFunctions");
 
 module.exports = {
   structure: new SlashCommandBuilder()
@@ -25,19 +26,17 @@ module.exports = {
    */
   run: async (client, Interaction, args) => {
     await Interaction.deferReply({ ephemeral: true });
-    const um = new UserManager();
 
     try {
-      const userWallet = await um.getOrCreateWallet(
+      const { sdk } = await getFormattedWallet(
         Interaction.user.username,
         Interaction.user.id
       );
 
-      const uw = new UserWallet(userWallet.adminkey);
       const payUrl = Interaction.options.get(`lnurl`).value;
 
       if (payUrl) {
-        const payment = await uw.payInvoice(payUrl);
+        const payment = await sdk.payInvoice(payUrl);
 
         if (payment)
           Interaction.editReply({

@@ -7,10 +7,9 @@ const {
 } = require("discord.js");
 const ExtendedClient = require("../../../class/ExtendedClient");
 
-const UserManager = require(`../../../class/UserManager.js`);
-const UserWallet = require(`../../../class/User.js`);
 const { AuthorConfig } = require("../../../utils/helperConfig");
 const { formatter } = require("../../../utils/helperFormatter");
+const { getFormattedWallet } = require("../../../utils/helperFunctions");
 
 module.exports = {
   structure: new SlashCommandBuilder()
@@ -46,15 +45,12 @@ module.exports = {
     await Interaction.deferReply();
 
     try {
-      const member = await Interaction.guild.members.fetch(Interaction.user.id);
-      const um = new UserManager();
-      const userWallet = await um.getOrCreateWallet(
-        member.user.username,
-        member.user.id
+      const { sdk } = await getFormattedWallet(
+        Interaction.user.username,
+        Interaction.user.id
       );
 
-      const uw = new UserWallet(userWallet.adminkey);
-      const invoiceDetails = await uw.createInvote(
+      const invoiceDetails = await sdk.createInvote(
         amount.value,
         description ? description.value : ""
       );
