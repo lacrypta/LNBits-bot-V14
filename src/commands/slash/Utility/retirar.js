@@ -6,7 +6,10 @@ const ExtendedClient = require("../../../class/ExtendedClient");
 
 const UserManager = require(`../../../class/UserManager.js`);
 const UserWallet = require(`../../../class/User.js`);
-const { validateAmountAndBalance } = require("../../../utils/helperFunctions");
+const {
+  validateAmountAndBalance,
+  EphemeralMessageResponse,
+} = require("../../../utils/helperFunctions");
 
 module.exports = {
   structure: new SlashCommandBuilder()
@@ -39,56 +42,34 @@ module.exports = {
         Interaction.user.id
       );
 
-      if (userWallet.adminkey) {
-        const uw = new UserWallet(userWallet.adminkey);
-        const address = Interaction.options.get(`address`).value;
-        const amount = Number(Interaction.options.get(`monto`).value);
-        const senderWalletDetails = await uw.getWalletDetails();
+      const uw = new UserWallet(userWallet.adminkey);
+      const address = Interaction.options.get(`address`).value;
+      const amount = Number(Interaction.options.get(`monto`).value);
+      const senderWalletDetails = await uw.getWalletDetails();
 
-        const isValidAmount = validateAmountAndBalance(
-          amount,
-          senderWalletDetails.balance
-        );
+      const isValidAmount = validateAmountAndBalance(
+        amount,
+        senderWalletDetails.balance
+      );
 
-        try {
-          if (isValidAmount.status) {
-            const invoice = await uw.createOutgoingInvoice(address, amount);
+      if (!isValidAmount.status)
+        return EphemeralMessageResponse(Interaction, isValidAmount.content);
 
-            if (invoice && invoice.invoice) {
-              const payment = await uw.payInvoice(invoice.invoice);
+      const invoice = await uw.createOutgoingInvoice(address, amount);
 
-              if (payment) {
-                Interaction.editReply({
-                  content: `Enviaste ${amount} satoshis a ${address} desde tu billetera`,
-                  ephemeral: true,
-                });
-              }
-            }
-          } else {
-            Interaction.editReply({
-              content: isValidAmount.content,
-              ephemeral: true,
-            });
-          }
-        } catch (err) {
+      if (invoice && invoice.invoice) {
+        const payment = await uw.payInvoice(invoice.invoice);
+
+        if (payment) {
           Interaction.editReply({
-            content: `Ocurrió un error`,
+            content: `Enviaste ${amount} satoshis a ${address} desde tu billetera`,
             ephemeral: true,
           });
-          console.log(err);
         }
-      } else {
-        Interaction.editReply({
-          content: `No tienes una billetera`,
-          ephemeral: true,
-        });
       }
     } catch (err) {
       console.log(err);
-      Interaction.editReply({
-        content: `Ocurrió un error`,
-        ephemeral: true,
-      });
+      return EphemeralMessageResponse(Interaction, "Ocurrió un error");
     }
   },
 };

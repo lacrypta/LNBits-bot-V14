@@ -9,6 +9,7 @@ const QRCode = require(`qrcode`);
 
 const UserManager = require(`../../../class/UserManager.js`);
 const UserWallet = require(`../../../class/User.js`);
+const { EphemeralMessageResponse } = require("../../../utils/helperFunctions");
 
 module.exports = {
   structure: new SlashCommandBuilder()
@@ -73,18 +74,14 @@ module.exports = {
           },
         ]);
 
-      Interaction.editReply({
+      return Interaction.editReply({
         embeds: [embed],
         files: [file],
         ephemeral: true,
       });
     } catch (err) {
       console.log(err);
-      Interaction.reply({
-        content: `Ocurrió un error`,
-        ephemeral: true,
-      });
-      return;
+      return EphemeralMessageResponse(Interaction, "Ocurrió un error");
     }
   },
 };

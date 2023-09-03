@@ -8,6 +8,11 @@ const ExtendedClient = require("../../../class/ExtendedClient");
 const UserManager = require(`../../../class/UserManager.js`);
 const UserWallet = require(`../../../class/User.js`);
 const { formatter } = require("../../../utils/helperFormatter.js");
+const {
+  messageResponse,
+  handleBotResponse,
+  EphemeralMessageResponse,
+} = require("../../../utils/helperFunctions");
 
 module.exports = {
   structure: new SlashCommandBuilder()
@@ -27,39 +32,34 @@ module.exports = {
         Interaction.user.id
       );
 
-      if (userWallet.adminkey) {
-        const uw = new UserWallet(userWallet.adminkey);
-        try {
-          const userWalletDetails = await uw.getWalletDetails();
+      const uw = new UserWallet(userWallet.adminkey);
+      try {
+        const userWalletDetails = await uw.getWalletDetails();
 
-          const walletUrl = `${process.env.LNBITS_HOST}/wallet?usr=${userWallet.user}`;
+        const walletUrl = `${process.env.LNBITS_HOST}/wallet?usr=${userWallet.user}`;
 
-          const sats = userWalletDetails.balance / 1000;
+        const sats = userWalletDetails.balance / 1000;
 
-          const row = new ActionRowBuilder().addComponents([
-            new ButtonBuilder()
-              .setEmoji({ name: `💰` })
-              .setStyle(5)
-              .setLabel("Ir a mi billetera")
-              .setURL(`${walletUrl}`),
-          ]);
+        const row = new ActionRowBuilder().addComponents([
+          new ButtonBuilder()
+            .setEmoji({ name: `💰` })
+            .setStyle(5)
+            .setLabel("Ir a mi billetera")
+            .setURL(`${walletUrl}`),
+        ]);
 
-          Interaction.editReply({
-            content: `Balance: ${formatter(0, 0).format(sats)} satoshis`,
-            ephemeral: true,
-            components: [row],
-          });
-        } catch (err) {
-          console.log(err);
-        }
-      } else {
-        Interaction.editReply({
-          content: `No tienes una billetera`,
+        handleBotResponse(Interaction, {
+          content: `Balance: ${formatter(0, 0).format(sats)} satoshis`,
           ephemeral: true,
+          components: [row],
         });
+      } catch (err) {
+        console.log(err);
+        EphemeralMessageResponse(Interaction, "Ocurrió un error");
       }
     } catch (err) {
       console.log(err);
+      EphemeralMessageResponse(Interaction, "Ocurrió un error");
     }
   },
 };

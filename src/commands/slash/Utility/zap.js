@@ -7,7 +7,10 @@ const ExtendedClient = require("../../../class/ExtendedClient");
 
 const UserManager = require(`../../../class/UserManager.js`);
 const UserWallet = require(`../../../class/User.js`);
-const { validateAmountAndBalance } = require("../../../utils/helperFunctions");
+const {
+  validateAmountAndBalance,
+  EphemeralMessageResponse,
+} = require("../../../utils/helperFunctions");
 const { updateUserRank } = require("../../../handlers/donate");
 
 module.exports = {
@@ -42,13 +45,11 @@ module.exports = {
       ? Interaction.options.get(`message`)
       : { value: `Envío de sats vía La Crypta` };
 
-    if (amount.value <= 0) {
-      Interaction.reply({
-        content: `No se permiten saldos negativos`,
-        ephemeral: true,
-      });
-      return;
-    }
+    if (amount.value <= 0)
+      return EphemeralMessageResponse(
+        Interaction,
+        "No se permiten saldos negativos"
+      );
 
     const sats = amount.value;
     const senderData = await Interaction.guild.members.fetch(sender.user.id);
@@ -66,62 +67,50 @@ module.exports = {
       receiver.user.id
     );
 
-    if (senderWalletData.id === receiverWalletData.id) {
-      Interaction.reply({
-        content: `No puedes enviarte sats a vos mismo.`,
-        ephemeral: true,
-      });
-      return;
-    }
+    if (senderWalletData.id === receiverWalletData.id)
+      return EphemeralMessageResponse(
+        Interaction,
+        "No puedes enviarte sats a vos mismo."
+      );
 
-    if (!senderWalletData.id) {
-      Interaction.reply({
-        content: `Ocurrió un error`,
-        ephemeral: true,
-      });
-      return;
-    }
+    if (!senderWalletData.id)
+      return EphemeralMessageResponse(
+        Interaction,
+        "Ocurrió un error al obtener la información del usuario"
+      );
 
-    const senderWallet = new UserWallet(senderWalletData.adminkey);
-    const senderWalletDetails = await senderWallet.getWalletDetails();
-    const receiverWallet = new UserWallet(receiverWalletData.adminkey);
+    try {
+      const senderWallet = new UserWallet(senderWalletData.adminkey);
+      const senderWalletDetails = await senderWallet.getWalletDetails();
+      const receiverWallet = new UserWallet(receiverWalletData.adminkey);
 
-    const isValidAmount = validateAmountAndBalance(
-      Number(sats),
-      senderWalletDetails.balance
-    );
+      const isValidAmount = validateAmountAndBalance(
+        Number(sats),
+        senderWalletDetails.balance
+      );
 
-    if (isValidAmount.status) {
-      try {
-        // await Interaction.deferReply();
-        const invoiceDetails = await receiverWallet.createInvote(
-          sats,
-          message.value
-        );
+      if (!isValidAmount.status)
+        return EphemeralMessageResponse(Interaction, isValidAmount.content);
 
-        const invoicePaymentDetails = await senderWallet.payInvoice(
-          invoiceDetails.payment_request
-        );
+      const invoiceDetails = await receiverWallet.createInvote(
+        sats,
+        message.value
+      );
 
-        if (invoicePaymentDetails) {
-          await updateUserRank(Interaction.user.id, "comunidad", sats);
+      const invoicePaymentDetails = await senderWallet.payInvoice(
+        invoiceDetails.payment_request
+      );
 
-          await Interaction.reply({
-            content: `${senderData.toString()} envió ${sats} satoshis a ${receiverData.toString()}`,
-          });
-        }
-      } catch (err) {
-        console.log(err);
+      if (invoicePaymentDetails) {
+        await updateUserRank(Interaction.user.id, "comunidad", sats);
+
         await Interaction.reply({
-          content: `Ocurrió un error`,
-          ephemeral: true,
+          content: `${senderData.toString()} envió ${sats} satoshis a ${receiverData.toString()}`,
         });
       }
-    } else {
-      await Interaction.reply({
-        content: isValidAmount.content,
-        ephemeral: true,
-      });
+    } catch (err) {
+      console.log(err);
+      return EphemeralMessageResponse(Interaction, "Ocurrió un error");
     }
   },
 };
