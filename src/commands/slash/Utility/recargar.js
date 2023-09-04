@@ -1,10 +1,9 @@
 const {
-  ChatInputCommandInteraction,
   SlashCommandBuilder,
   EmbedBuilder,
   AttachmentBuilder,
 } = require("discord.js");
-const ExtendedClient = require("../../../class/ExtendedClient");
+
 const QRCode = require(`qrcode`);
 
 const {
@@ -27,7 +26,7 @@ module.exports = {
    * @param {ChatInputCommandInteraction} Interaction
    * @param {[]} args
    */
-  run: async (client, Interaction, args) => {
+  run: async (client, Interaction) => {
     await Interaction.deferReply({ ephemeral: true });
     const amount = Interaction.options.get(`monto`);
 

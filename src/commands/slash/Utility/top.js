@@ -1,9 +1,5 @@
-const {
-  ChatInputCommandInteraction,
-  SlashCommandBuilder,
-  EmbedBuilder,
-} = require("discord.js");
-const ExtendedClient = require("../../../class/ExtendedClient");
+const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
+
 const availableTypes = ["pozo", "comunidad"];
 
 const {
@@ -31,7 +27,7 @@ module.exports = {
    * @param {ChatInputCommandInteraction} Interaction
    * @param {[]} args
    */
-  run: async (client, Interaction, args) => {
+  run: async (client, Interaction) => {
     await Interaction.deferReply();
 
     try {

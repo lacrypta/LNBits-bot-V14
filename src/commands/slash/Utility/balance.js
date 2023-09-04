@@ -1,10 +1,8 @@
 const {
-  ChatInputCommandInteraction,
   SlashCommandBuilder,
   ActionRowBuilder,
   ButtonBuilder,
 } = require("discord.js");
-const ExtendedClient = require("../../../class/ExtendedClient");
 
 const { formatter } = require("../../../utils/helperFormatter.js");
 const {
@@ -22,7 +20,7 @@ module.exports = {
    * @param {ChatInputCommandInteraction} Interaction
    * @param {[]} args
    */
-  run: async (client, Interaction, args) => {
+  run: async (client, Interaction) => {
     await Interaction.deferReply({ ephemeral: true });
 
     try {

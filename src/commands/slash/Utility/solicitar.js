@@ -1,15 +1,16 @@
 const {
-  ChatInputCommandInteraction,
   SlashCommandBuilder,
   EmbedBuilder,
   ActionRowBuilder,
   ButtonBuilder,
 } = require("discord.js");
-const ExtendedClient = require("../../../class/ExtendedClient");
 
 const { AuthorConfig } = require("../../../utils/helperConfig");
 const { formatter } = require("../../../utils/helperFormatter");
-const { getFormattedWallet } = require("../../../utils/helperFunctions");
+const {
+  getFormattedWallet,
+  EphemeralMessageResponse,
+} = require("../../../utils/helperFunctions");
 
 module.exports = {
   structure: new SlashCommandBuilder()
@@ -32,7 +33,7 @@ module.exports = {
    * @param {ChatInputCommandInteraction} Interaction
    * @param {[]} args
    */
-  run: async (client, Interaction, args) => {
+  run: async (client, Interaction) => {
     const amount = Interaction.options.get(`monto`);
     const description = Interaction.options.get(`descripcion`);
 

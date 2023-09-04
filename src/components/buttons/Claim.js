@@ -1,9 +1,7 @@
 const Discord = require(`discord.js`);
-const UserManager = require(`../../class/UserManager.js`);
 const LNURL = require(`../../class/LNURLw`);
 const LNURLw = require("../../class/LNURLw");
 
-const UserWallet = require(`../../class/User.js`);
 const { updateUserRank } = require("../../handlers/donate.js");
 const { getFaucet, updateFaucet } = require("../../handlers/faucet.js");
 const { AuthorConfig } = require("../../utils/helperConfig.js");

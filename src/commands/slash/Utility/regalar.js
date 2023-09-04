@@ -1,11 +1,9 @@
 const {
-  ChatInputCommandInteraction,
   SlashCommandBuilder,
   EmbedBuilder,
   ActionRowBuilder,
   ButtonBuilder,
 } = require("discord.js");
-const ExtendedClient = require("../../../class/ExtendedClient");
 
 const Extensions = require(`../../../class/Extensions.js`);
 const LNURLw = require(`../../../class/LNURLw.js`);
@@ -43,7 +41,7 @@ module.exports = {
    * @param {ChatInputCommandInteraction} Interaction
    * @param {[]} args
    */
-  run: async (client, Interaction, args) => {
+  run: async (client, Interaction) => {
     const amount = Interaction.options.get(`monto`);
     const uses = Interaction.options.get(`usos`);
 

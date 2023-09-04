@@ -1,8 +1,4 @@
-const {
-  ChatInputCommandInteraction,
-  SlashCommandBuilder,
-} = require("discord.js");
-const ExtendedClient = require("../../../class/ExtendedClient");
+const { SlashCommandBuilder } = require("discord.js");
 
 const {
   EphemeralMessageResponse,
@@ -24,7 +20,7 @@ module.exports = {
    * @param {ChatInputCommandInteraction} Interaction
    * @param {[]} args
    */
-  run: async (client, Interaction, args) => {
+  run: async (client, Interaction) => {
     await Interaction.deferReply({ ephemeral: true });
 
     try {

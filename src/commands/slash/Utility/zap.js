@@ -1,8 +1,4 @@
-const {
-  ChatInputCommandInteraction,
-  SlashCommandBuilder,
-} = require("discord.js");
-const ExtendedClient = require("../../../class/ExtendedClient");
+const { SlashCommandBuilder } = require("discord.js");
 
 const {
   validateAmountAndBalance,
@@ -35,7 +31,7 @@ module.exports = {
    * @param {ChatInputCommandInteraction} Interaction
    * @param {[]} args
    */
-  run: async (client, Interaction, args) => {
+  run: async (client, Interaction) => {
     const receiver = Interaction.options.get(`user`);
     const amount = Interaction.options.get(`monto`);
     const message = Interaction.options.get(`message`)

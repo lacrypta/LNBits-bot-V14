@@ -1,9 +1,4 @@
-const {
-  ChatInputCommandInteraction,
-  SlashCommandBuilder,
-  EmbedBuilder,
-} = require("discord.js");
-const ExtendedClient = require("../../../class/ExtendedClient");
+const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
 
 const { formatter } = require("../../../utils/helperFormatter.js");
 const { updateUserRank } = require("../../../handlers/donate.js");
@@ -29,7 +24,7 @@ module.exports = {
    * @param {ChatInputCommandInteraction} Interaction
    * @param {[]} args
    */
-  run: async (client, Interaction, args) => {
+  run: async (client, Interaction) => {
     try {
       const userWallet = await getFormattedWallet(
         Interaction.user.username,
