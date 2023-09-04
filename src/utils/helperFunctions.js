@@ -10,13 +10,13 @@ const getFormattedWallet = async (username, discord_id) => {
 
   return {
     ...walletKeys,
-    balance: walletDetails.balance,
+    balance: walletDetails.balance / 1000,
     sdk,
   };
 };
 
 const validateAmountAndBalance = (amount, balance) => {
-  const formatUserBalance = balance / 1000;
+  const formatUserBalance = balance;
 
   if (amount <= 0)
     return {

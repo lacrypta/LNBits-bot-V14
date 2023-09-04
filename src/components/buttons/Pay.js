@@ -29,7 +29,7 @@ module.exports = {
           Interaction.user.id
         );
 
-        const satsBalance = userWallet.balance / 1000;
+        const satsBalance = userWallet.balance;
 
         if (satsBalance < amountOnSats.value) {
           return EphemeralMessageResponse(

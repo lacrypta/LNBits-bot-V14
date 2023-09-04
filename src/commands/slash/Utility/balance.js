@@ -32,7 +32,7 @@ module.exports = {
       );
 
       const walletUrl = `${process.env.LNBITS_HOST}/wallet?usr=${userWallet.user}`;
-      const sats = userWallet.balance / 1000;
+      const sats = userWallet.balance;
 
       const row = new ActionRowBuilder().addComponents([
         new ButtonBuilder()
