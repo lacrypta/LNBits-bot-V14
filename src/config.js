@@ -4,7 +4,7 @@ module.exports = {
     id: process.env.CLIENT_ID,
   },
   handler: {
-    prefix: "?",
+    prefix: "!",
     deploy: true,
     commands: {
       prefix: true,

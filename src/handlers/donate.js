@@ -42,7 +42,6 @@ const updateUserRank = async (discord_id, type, new_amount) => {
       return userRank;
     } else {
       const new_rank = await createRank(discord_id, type, new_amount);
-
       return new_rank;
     }
   } catch (err) {

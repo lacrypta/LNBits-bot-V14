@@ -3,7 +3,6 @@ const {
   Partials,
   Collection,
   GatewayIntentBits,
-  ActivityType,
 } = require("discord.js");
 const config = require("../config");
 const commands = require("../handlers/commands");
