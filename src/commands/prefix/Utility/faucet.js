@@ -3,11 +3,8 @@ const {
   RemoveRoleFromList,
 } = require("../../../handlers/lists");
 
-const parametersResponse = {
-  content:
-    "Parámetros incorrectos. El formato es: **!faucet <whitelist o blacklist> <add o remove> <@rol>**",
-  ephemeral: true,
-};
+const parametersResponse =
+  "**[error en !faucet]** Parámetros incorrectos. El formato es: **!faucet <whitelist o blacklist> <add o remove> <@rol>**";
 
 module.exports = {
   structure: {
@@ -24,7 +21,7 @@ module.exports = {
    * @param {[String]} args
    */
   run: async (client, message, args) => {
-    if (args.length !== 3) return message.reply(parametersResponse);
+    if (args.length !== 3) return message.member.send(parametersResponse);
 
     const type = args[0];
     const option = args[1];
@@ -36,31 +33,28 @@ module.exports = {
       (option !== "add" && option !== "remove") ||
       (type !== "whitelist" && type !== "blacklist")
     )
-      return message.reply(parametersResponse);
+      return message.member.send(parametersResponse);
 
     const guildRoles = await message.guild.roles.fetch();
     const existRoleInGuild = guildRoles.find((rol) => rol.id === roleId);
 
     if (!existRoleInGuild)
-      return message.reply({
-        content: "El rol enviado en el parámetro no existe",
-        ephemeral: true,
-      });
+      return message.member.send(
+        `**[error en !faucet]** El rol que enviaste en el parámetro no existe en el servidor **${message.guild.name}**`
+      );
 
     if (option === "add") {
       const roleAdded = await AddRoleToList(type, roleId, message.guild.id);
 
       if (!roleAdded)
-        return message.reply({
-          content: "El rol que quieres agregar ya existe en el listado",
-          ephemeral: true,
-        });
+        return message.member.send(
+          `**[error en !faucet]** El rol que quieres agregar ya existe en el listado`
+        );
 
       if (roleAdded)
-        return message.reply({
-          content: `El rol ${existRoleInGuild.toString()} fue agregado a la ${type}`,
-          ephemeral: true,
-        });
+        return message.member.send(
+          `**[uso de !faucet en ${message.guild.name}]** El rol **${existRoleInGuild.name}** fue agregado a la ${type}`
+        );
     } else if (option === "remove") {
       const roleRemoved = await RemoveRoleFromList(
         type,
@@ -69,15 +63,13 @@ module.exports = {
       );
 
       if (!roleRemoved)
-        return message.reply({
-          content: `El rol que quieres eliminar no existe en la ${type}`,
-          ephemeral: true,
-        });
+        return message.member.send(
+          `**[error en !faucet]** El rol que quieres eliminar no existe en la ${type}`
+        );
 
-      return message.reply({
-        content: `El rol ${existRoleInGuild.toString()} fue eliminado de la ${type}`,
-        ephemeral: true,
-      });
+      return message.member.send(
+        `**[uso de !faucet en ${message.guild.name}]** El rol **${existRoleInGuild.name}** fue eliminado de la ${type}`
+      );
     }
   },
 };

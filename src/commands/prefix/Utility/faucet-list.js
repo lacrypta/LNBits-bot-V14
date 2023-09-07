@@ -17,24 +17,28 @@ module.exports = {
    */
   run: async (client, message) => {
     const rolesList = await getRoleList(message.guild.id);
+    const serverRoles = await message.guild.roles.fetch();
 
-    let cmdOutput = ``;
+    let cmdOutput = dedent(
+      `**[FAUCET]** \n Blacklist y Whitelist de roles en el servidor ${message.guild.name}`
+    );
 
     rolesList.forEach((rolInfo) => {
-      cmdOutput += `
-         <@&${rolInfo.role_id}> - **${rolInfo.type}**
-        `;
+      const roleDetails = serverRoles.find((rol) => rol.id === rolInfo.role_id);
 
-      cmdOutput = dedent(cmdOutput);
+      if (roleDetails) {
+        cmdOutput += `
+           ${"```"}${roleDetails.name} - ${rolInfo.type}${"```"}
+          `;
+
+        cmdOutput = dedent(cmdOutput);
+      }
     });
 
-    if (cmdOutput.length)
-      return message.reply({
-        content: cmdOutput,
-      });
+    if (cmdOutput.length) return message.member.send(cmdOutput);
 
-    return message.reply({
-      content: "No hay roles añadidos a ninguna lista",
-    });
+    return message.member.send(
+      `${cmdOutput} \n No hay roles añadidos a ninguna lista`
+    );
   },
 };
