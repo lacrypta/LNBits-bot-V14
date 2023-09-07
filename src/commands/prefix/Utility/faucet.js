@@ -5,15 +5,15 @@ const {
 
 const parametersResponse = {
   content:
-    "Parámetros incorrectos. El formato es: **!blacklist <add o remove> <@rol>**",
+    "Parámetros incorrectos. El formato es: **!faucet <whitelist o blacklist> <add o remove> <@rol>**",
   ephemeral: true,
 };
 
 module.exports = {
   structure: {
-    name: "faucet-blacklist",
+    name: "faucet",
     description:
-      "Agrega o remueve roles que NO tendrán permitido reclamar faucets.",
+      "Agrega o remueve roles que tienen permitido reclamar faucets.",
     aliases: [],
     permissions: "Administrator",
     cooldown: 5000,
@@ -24,12 +24,18 @@ module.exports = {
    * @param {[String]} args
    */
   run: async (client, message, args) => {
-    if (args.length !== 2) return message.reply(parametersResponse);
+    if (args.length !== 3) return message.reply(parametersResponse);
 
-    const option = args[0];
-    const roleId = args[1] ? args[1].slice(3, -1) : 0;
+    const type = args[0];
+    const option = args[1];
+    const roleId = args[2] ? args[2].slice(3, -1) : 0;
 
-    if (!option || !roleId || (option !== "add" && option !== "remove"))
+    if (
+      !option ||
+      !roleId ||
+      (option !== "add" && option !== "remove") ||
+      (type !== "whitelist" && type !== "blacklist")
+    )
       return message.reply(parametersResponse);
 
     const guildRoles = await message.guild.roles.fetch();
@@ -42,7 +48,7 @@ module.exports = {
       });
 
     if (option === "add") {
-      const roleAdded = await AddRoleToList("blacklist", roleId);
+      const roleAdded = await AddRoleToList(type, roleId, message.guild.id);
 
       if (!roleAdded)
         return message.reply({
@@ -52,20 +58,24 @@ module.exports = {
 
       if (roleAdded)
         return message.reply({
-          content: `El rol ${existRoleInGuild.toString()} fue agregado a la blacklist`,
+          content: `El rol ${existRoleInGuild.toString()} fue agregado a la ${type}`,
           ephemeral: true,
         });
     } else if (option === "remove") {
-      const roleRemoved = await RemoveRoleFromList("blacklist", roleId);
+      const roleRemoved = await RemoveRoleFromList(
+        type,
+        roleId,
+        message.guild.id
+      );
 
       if (!roleRemoved)
         return message.reply({
-          content: "El rol que quieres eliminar no existe en la blacklist",
+          content: `El rol que quieres eliminar no existe en la ${type}`,
           ephemeral: true,
         });
 
       return message.reply({
-        content: `El rol ${existRoleInGuild.toString()} fue eliminado de la blacklist`,
+        content: `El rol ${existRoleInGuild.toString()} fue eliminado de la ${type}`,
         ephemeral: true,
       });
     }

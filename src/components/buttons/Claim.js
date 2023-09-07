@@ -10,7 +10,7 @@ const {
   EphemeralMessageResponse,
   getFormattedWallet,
 } = require("../../utils/helperFunctions.js");
-const { getRoleList } = require("../../handlers/lists");
+const { getFormattedRoleLists } = require("../../handlers/lists");
 
 const usersClaiming = {};
 const faucetDebouncedUpdate = {};
@@ -112,38 +112,43 @@ module.exports = {
           "No puedes reclamar tu propio faucet"
         );
 
-      const faucetList = await getRoleList();
-      if (!faucetList.length)
-        EphemeralMessageResponse(
-          Interaction,
-          "No hay ningún rol habilitado a reclamar faucets"
-        );
-
-      const userRoles = Interaction.member.roles.cache;
-
-      const roleWhiteListed = userRoles.find((rol) =>
-        faucetList.find(
-          (list) => list.type === "whitelist" && list.role_id === rol.id
-        )
+      const { whitelist, blacklist } = await getFormattedRoleLists(
+        Interaction.guild.id
       );
 
-      if (!roleWhiteListed)
-        return EphemeralMessageResponse(
-          Interaction,
-          "No tienes ningún rol que te habilite a reclamar faucets."
+      if (whitelist.length || blacklist.length) {
+        const userRoles = Interaction.member.roles.cache;
+
+        const hasRoleAllowed =
+          !whitelist.length ||
+          userRoles.find((rol) => whitelist.includes(rol.id));
+
+        if (!hasRoleAllowed) {
+          let resOutput = dedent(` 
+          No tienes ningún rol que te habilite a reclamar faucets, los roles permitidos son: 
+          `);
+
+          whitelist.forEach((role_id) => {
+            resOutput += `
+               <@&${role_id}>
+              `;
+
+            resOutput = dedent(resOutput);
+          });
+
+          return EphemeralMessageResponse(Interaction, resOutput);
+        }
+
+        const hasRoleDisallowed = userRoles.find((rol) =>
+          blacklist.includes(rol.id)
         );
 
-      const roleBlackListed = userRoles.find((rol) =>
-        faucetList.find(
-          (list) => list.type === "blacklist" && list.role_id === rol.id
-        )
-      );
-
-      if (roleBlackListed)
-        return EphemeralMessageResponse(
-          Interaction,
-          "Tienes un rol que se encuentra en la lista de roles que no tienen permitido reclamar un faucet."
-        );
+        if (hasRoleDisallowed)
+          return EphemeralMessageResponse(
+            Interaction,
+            `No puedes reclamar debido a que posees el rol ${hasRoleDisallowed.toString()} que se encuentra en la lista de roles que no tienen permitido reclamar un faucet.`
+          );
+      }
 
       usersClaiming[Interaction.user.id] = true;
 
@@ -159,7 +164,7 @@ module.exports = {
           faucet.discord_id
         );
 
-        if (withdrawLink && withdrawLink.uses <= withdrawLink.used)
+        if (withdrawLink && withdrawLink.uses <= faucet.claimers_ids.length)
           return EphemeralMessageResponse(
             Interaction,
             "El faucet ya fue reclamado en su totalidad."
@@ -199,9 +204,11 @@ module.exports = {
 
           EphemeralMessageResponse(
             Interaction,
-            `Reclamaste el faucet con éxito, ahora tu balance es ${
+            `Recibiste ${
+              withdrawLink.max_withdrawable
+            } sats por reclamar este faucet, tu nuevo balance es: ${(
               new_user_details.balance / 1000
-            }`
+            ).toFixed(0)} satoshis`
           );
         }
       } catch (err) {

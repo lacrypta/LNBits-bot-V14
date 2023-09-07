@@ -16,13 +16,13 @@ module.exports = {
    * @param {[String]} args
    */
   run: async (client, message) => {
-    const rolesList = await getRoleList();
+    const rolesList = await getRoleList(message.guild.id);
 
     let cmdOutput = ``;
 
     rolesList.forEach((rolInfo) => {
       cmdOutput += `
-         <@&${rolInfo.role_id}> - Añadido a la ${rolInfo.type}
+         <@&${rolInfo.role_id}> - **${rolInfo.type}**
         `;
 
       cmdOutput = dedent(cmdOutput);
