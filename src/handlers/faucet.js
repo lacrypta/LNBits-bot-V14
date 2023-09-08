@@ -6,6 +6,7 @@ const createFaucet = async (discord_id, withdraw_id) => {
       discord_id,
       withdraw_id,
       claimersId: [],
+      closed: false,
     });
 
     const result = newFaucet.save();
@@ -46,8 +47,24 @@ const updateFaucet = async (faucet_id, new_claimer) => {
   }
 };
 
+const closeFaucet = async (faucet_id) => {
+  try {
+    const faucet = await getFaucet(faucet_id);
+    if (!faucet) return null;
+
+    faucet.closed = true;
+    await faucet.save();
+
+    return faucet;
+  } catch (err) {
+    console.log(err);
+    return null;
+  }
+};
+
 module.exports = {
   createFaucet,
   getFaucet,
   updateFaucet,
+  closeFaucet,
 };

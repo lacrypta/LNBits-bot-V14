@@ -1,5 +1,4 @@
 const Api = require(`./LnbitsApi.js`);
-const UserWallet = require("./User.js");
 const UserManager = require("./UserManager.js");
 
 class LNURLw extends Api {
@@ -26,6 +25,18 @@ class LNURLw extends Api {
       .url(`${this.urlPath}/withdraw/api/v1/links/${id}`)
       .headers({ "X-Api-Key": walletAdminKey })
       .get()
+      .json();
+  }
+
+  async deleteWithdrawLink(withdraw_id, discord_id) {
+    const um = new UserManager();
+    const userWallet = await um.getUserWallet(discord_id);
+    const walletAdminKey = userWallet.adminkey;
+
+    return this.externalApi
+      .url(`${this.urlPath}/withdraw/api/v1/links/${withdraw_id}`)
+      .headers({ "X-Api-Key": walletAdminKey })
+      .delete()
       .json();
   }
 

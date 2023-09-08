@@ -5,6 +5,7 @@ const faucetSchema = new mongoose.Schema(
     discord_id: { type: String, required: true },
     withdraw_id: { type: String, required: true },
     claimers_ids: [{ type: String, required: true }],
+    closed: { type: Boolean, required: false },
   },
   { timestamps: true }
 );

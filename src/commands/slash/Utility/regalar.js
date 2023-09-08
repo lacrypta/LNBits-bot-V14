@@ -118,6 +118,11 @@ module.exports = {
             .setLabel("Reclamar")
             .setEmoji({ name: `💸` })
             .setStyle(2),
+          new ButtonBuilder()
+            .setCustomId("closefaucet")
+            .setLabel("Cerrar faucet")
+            .setEmoji({ name: `✖️` })
+            .setStyle(2),
         ]);
 
         Interaction.editReply({

@@ -100,13 +100,25 @@ module.exports = {
     if (faucetId) {
       const faucet = await getFaucet(faucetId);
 
-      if (faucet && faucet.claimers_ids.includes(Interaction.user.id))
+      if (!faucet)
+        return EphemeralMessageResponse(
+          Interaction,
+          "El faucet que intentas reclamar no se encuentra en la base de datos"
+        );
+
+      if (faucet.claimers_ids.includes(Interaction.user.id))
         return EphemeralMessageResponse(
           Interaction,
           "Solo puedes reclamar el premio una vez"
         );
 
-      if (faucet && faucet.discord_id === Interaction.user.id)
+      if (faucet.closed)
+        return EphemeralMessageResponse(
+          Interaction,
+          "El faucet que intentas reclamar fue cerrado por su autor"
+        );
+
+      if (faucet.discord_id === Interaction.user.id)
         return EphemeralMessageResponse(
           Interaction,
           "No puedes reclamar tu propio faucet"
