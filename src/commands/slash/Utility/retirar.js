@@ -55,12 +55,11 @@ module.exports = {
       if (invoice && invoice.invoice) {
         const payment = await userWallet.sdk.payInvoice(invoice.invoice);
 
-        if (payment) {
-          Interaction.editReply({
+        if (payment)
+          return Interaction.editReply({
             content: `Enviaste ${amount} satoshis a ${address} desde tu billetera`,
             ephemeral: true,
           });
-        }
       }
     } catch (err) {
       console.log(err);

@@ -51,7 +51,7 @@ async function update(faucet_id, fieldInfo, withdrawLink, message) {
     });
 
   const disabledFaucet = withdrawLink.uses <= newUsed;
-  const row = new Discord.ActionRowBuilder().addComponents([
+  const components = [
     new Discord.ButtonBuilder()
       .setCustomId("claim")
       .setLabel(
@@ -60,7 +60,18 @@ async function update(faucet_id, fieldInfo, withdrawLink, message) {
       .setEmoji({ name: `💸` })
       .setStyle(2)
       .setDisabled(disabledFaucet),
-  ]);
+  ];
+
+  if (!disabledFaucet)
+    components.push(
+      new Discord.ButtonBuilder()
+        .setCustomId("closefaucet")
+        .setLabel("Cerrar faucet")
+        .setEmoji({ name: `✖️` })
+        .setStyle(2)
+    );
+
+  const row = new Discord.ActionRowBuilder().addComponents(components);
 
   await message.edit({
     embeds: [embed],

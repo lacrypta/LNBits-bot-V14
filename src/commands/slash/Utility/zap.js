@@ -46,33 +46,33 @@ module.exports = {
 
     const sats = amount.value;
 
-    const receiverData = await Interaction.guild.members.fetch(
-      receiver.user.id
-    );
-
-    const senderWallet = await getFormattedWallet(
-      Interaction.user.username,
-      Interaction.user.id
-    );
-
-    const receiverWallet = await getFormattedWallet(
-      receiverData.user.username,
-      receiverData.user.id
-    );
-
-    if (!senderWallet.id || !receiverWallet.id)
-      return EphemeralMessageResponse(
-        Interaction,
-        "Ocurrió un error al obtener la información del usuario"
-      );
-
-    if (senderWallet.id === receiverWallet.id)
-      return EphemeralMessageResponse(
-        Interaction,
-        "No puedes enviarte sats a vos mismo."
-      );
-
     try {
+      const receiverData = await Interaction.guild.members.fetch(
+        receiver.user.id
+      );
+
+      const senderWallet = await getFormattedWallet(
+        Interaction.user.username,
+        Interaction.user.id
+      );
+
+      const receiverWallet = await getFormattedWallet(
+        receiverData.user.username,
+        receiverData.user.id
+      );
+
+      if (!senderWallet.id || !receiverWallet.id)
+        return EphemeralMessageResponse(
+          Interaction,
+          "Ocurrió un error al obtener la información del usuario"
+        );
+
+      if (senderWallet.id === receiverWallet.id)
+        return EphemeralMessageResponse(
+          Interaction,
+          "No puedes enviarte sats a vos mismo."
+        );
+
       const isValidAmount = validateAmountAndBalance(
         Number(sats),
         senderWallet.balance
