@@ -57,9 +57,18 @@ const EphemeralMessageResponse = async (Interaction, content) => {
   await handleBotResponse(Interaction, objectResponse);
 };
 
+const FollowUpEphemeralResponse = async (Interaction, content) => {
+  await Interaction.deleteReply();
+  await Interaction.followUp({
+    content: content,
+    ephemeral: true
+  });
+};
+
 module.exports = {
   getFormattedWallet,
   validateAmountAndBalance,
   handleBotResponse,
   EphemeralMessageResponse,
+  FollowUpEphemeralResponse,
 };

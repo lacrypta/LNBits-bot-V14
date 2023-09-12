@@ -2,8 +2,8 @@ const { SlashCommandBuilder } = require("discord.js");
 
 const {
   validateAmountAndBalance,
-  EphemeralMessageResponse,
   getFormattedWallet,
+  FollowUpEphemeralResponse,
 } = require("../../../utils/helperFunctions");
 const { updateUserRank } = require("../../../handlers/donate");
 
@@ -32,21 +32,22 @@ module.exports = {
    * @param {[]} args
    */
   run: async (client, Interaction) => {
-    const receiver = Interaction.options.get(`user`);
-    const amount = Interaction.options.get(`monto`);
-    const message = Interaction.options.get(`message`)
-      ? Interaction.options.get(`message`)
-      : { value: `Envío de sats vía La Crypta` };
-
-    if (amount.value <= 0)
-      return EphemeralMessageResponse(
-        Interaction,
-        "No se permiten saldos negativos"
-      );
-
-    const sats = amount.value;
-
     try {
+      await Interaction.deferReply();
+      const receiver = Interaction.options.get(`user`);
+      const amount = Interaction.options.get(`monto`);
+      const message = Interaction.options.get(`message`)
+        ? Interaction.options.get(`message`)
+        : { value: `Envío de sats vía La Crypta` };
+
+      if (amount.value <= 0)
+        return FollowUpEphemeralResponse(
+          Interaction,
+          "No se permiten saldos negativos"
+        );
+
+      const sats = amount.value;
+    
       const receiverData = await Interaction.guild.members.fetch(
         receiver.user.id
       );
@@ -62,13 +63,13 @@ module.exports = {
       );
 
       if (!senderWallet.id || !receiverWallet.id)
-        return EphemeralMessageResponse(
+        return FollowUpEphemeralResponse(
           Interaction,
           "Ocurrió un error al obtener la información del usuario"
         );
 
       if (senderWallet.id === receiverWallet.id)
-        return EphemeralMessageResponse(
+        return FollowUpEphemeralResponse(
           Interaction,
           "No puedes enviarte sats a vos mismo."
         );
@@ -79,7 +80,7 @@ module.exports = {
       );
 
       if (!isValidAmount.status)
-        return EphemeralMessageResponse(Interaction, isValidAmount.content);
+        return FollowUpEphemeralResponse(Interaction, isValidAmount.content);
 
       const invoiceDetails = await receiverWallet.sdk.createInvote(
         sats,
@@ -93,13 +94,13 @@ module.exports = {
       if (invoicePaymentDetails) {
         await updateUserRank(Interaction.user.id, "comunidad", sats);
 
-        await Interaction.reply({
+        await Interaction.editReply({
           content: `${Interaction.user.toString()} envió ${sats} satoshis a ${receiverData.toString()}`,
         });
       }
     } catch (err) {
       console.log(err);
-      return EphemeralMessageResponse(Interaction, "Ocurrió un error");
+      return FollowUpEphemeralResponse(Interaction, "Ocurrió un error");
     }
   },
 };
