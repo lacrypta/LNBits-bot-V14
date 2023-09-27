@@ -103,12 +103,6 @@ module.exports = {
         : false;
 
     if (faucetId) {
-      if (usersClaiming[Interaction.user.id])
-        return FollowUpEphemeralResponse(
-          Interaction,
-          "Espera a que el bot termine de procesar tu reclamo anterior antes de iniciar otro nuevamente"
-        );
-
       const faucet = await getFaucet(faucetId);
 
       if (!faucet)
@@ -173,6 +167,12 @@ module.exports = {
           );
       }
 
+      if (usersClaiming[Interaction.user.id])
+        return FollowUpEphemeralResponse(
+          Interaction,
+          "Espera a que el bot termine de procesar tu reclamo anterior antes de iniciar otro nuevamente"
+        );
+
       usersClaiming[Interaction.user.id] = true;
 
       try {
@@ -187,11 +187,14 @@ module.exports = {
           faucet.discord_id
         );
 
-        if (withdrawLink && withdrawLink.uses <= faucet.claimers_ids.length)
+        if (withdrawLink && withdrawLink.uses <= faucet.claimers_ids.length) {
+          usersClaiming[Interaction.user.id] = false;
+
           return FollowUpEphemeralResponse(
             Interaction,
             "El faucet ya fue reclamado en su totalidad."
           );
+        }
 
         const lnurl = new LNURL(userWallet.adminkey);
         const lnurlParts = await lnurl.scanLNURL(withdrawLink.lnurl);
@@ -241,6 +244,7 @@ module.exports = {
         );
       }
     }
+
     usersClaiming[Interaction.user.id] = false;
   },
 };
