@@ -48,7 +48,7 @@ class UserWallet extends Api {
       .get();
   }
 
-  createOutgoingInvoice(lnUrlOrAddress, sats, comment) {
+  createOutgoingInvoice(lnUrlOrAddress, sats) {
     return lnurl
       .requestInvoice({
         lnUrlOrAddress,

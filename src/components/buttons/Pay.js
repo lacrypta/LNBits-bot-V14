@@ -1,7 +1,7 @@
 const Discord = require(`discord.js`);
 const {
   getFormattedWallet,
-  EphemeralMessageResponse,
+  FollowUpEphemeralResponse,
 } = require("../../utils/helperFunctions");
 
 /*
@@ -32,7 +32,7 @@ module.exports = {
         const satsBalance = userWallet.balance;
 
         if (satsBalance < amountOnSats.value) {
-          return EphemeralMessageResponse(
+          return FollowUpEphemeralResponse(
             Interaction,
             `No tienes balance suficiente para pagar esta factura. \nTu balance: ${satsBalance} - Requerido: ${amountOnSats.value}`
           );
@@ -49,13 +49,13 @@ module.exports = {
                 .setDisabled(true),
             ]);
 
-            Interaction.update({ components: [row] });
+            Interaction.message.edit({ components: [row] });
           }
         }
       }
     } catch (err) {
       console.log(err);
-      return EphemeralMessageResponse(Interaction, "Ocurrió un error");
+      return FollowUpEphemeralResponse(Interaction, "Ocurrió un error");
     }
   },
 };

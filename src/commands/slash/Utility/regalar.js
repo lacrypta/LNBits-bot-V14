@@ -11,8 +11,8 @@ const LNURLw = require(`../../../class/LNURLw.js`);
 const { createFaucet } = require("../../../handlers/faucet.js");
 const {
   validateAmountAndBalance,
-  EphemeralMessageResponse,
   getFormattedWallet,
+  FollowUpEphemeralResponse,
 } = require("../../../utils/helperFunctions");
 const { AuthorConfig } = require("../../../utils/helperConfig");
 
@@ -42,11 +42,12 @@ module.exports = {
    * @param {[]} args
    */
   run: async (client, Interaction) => {
+    await Interaction.deferReply();
     const amount = Interaction.options.get(`monto`);
     const uses = Interaction.options.get(`usos`);
 
     if (!amount || !uses || amount.value <= 0 || uses.value <= 0)
-      return EphemeralMessageResponse(
+      return FollowUpEphemeralResponse(
         Interaction,
         "No puedes usar números negativos o flotantes"
       );
@@ -54,7 +55,7 @@ module.exports = {
     const satsForUser = Number((amount.value / uses.value).toFixed(0));
 
     if (satsForUser < 1)
-      return EphemeralMessageResponse(
+      return FollowUpEphemeralResponse(
         Interaction,
         `Ocurrió un error en la división cantidad de sats / usuarios`
       );
@@ -71,9 +72,8 @@ module.exports = {
       );
 
       if (!isValidAmount.status)
-        return EphemeralMessageResponse(Interaction, isValidAmount.content);
+        return FollowUpEphemeralResponse(Interaction, isValidAmount.content);
 
-      await Interaction.deferReply();
       const ext = new Extensions(userWallet.user);
       await ext.enable(`withdraw`);
 
@@ -132,7 +132,7 @@ module.exports = {
       }
     } catch (err) {
       console.log(err);
-      return EphemeralMessageResponse(Interaction, "Ocurrió un error");
+      return FollowUpEphemeralResponse(Interaction, "Ocurrió un error");
     }
   },
 };

@@ -7,8 +7,8 @@ const { getFaucet, updateFaucet } = require("../../handlers/faucet.js");
 const { AuthorConfig } = require("../../utils/helperConfig.js");
 const dedent = require("dedent-js");
 const {
-  EphemeralMessageResponse,
   getFormattedWallet,
+  FollowUpEphemeralResponse,
 } = require("../../utils/helperFunctions.js");
 const { getFormattedRoleLists } = require("../../handlers/lists");
 
@@ -94,12 +94,6 @@ module.exports = {
   run: async (client, Interaction) => {
     await Interaction.deferReply({ ephemeral: true });
 
-    if (usersClaiming[Interaction.user.id])
-      return EphemeralMessageResponse(
-        Interaction,
-        "Espera a que el bot termine de procesar tu reclamo antes de iniciar otro nuevamente"
-      );
-
     const footerContent = Interaction.message.embeds[0]?.footer?.text;
     const faucetSubStr = footerContent ? footerContent.indexOf(" ") : -1;
 
@@ -109,31 +103,37 @@ module.exports = {
         : false;
 
     if (faucetId) {
+      if (usersClaiming[Interaction.user.id])
+        return FollowUpEphemeralResponse(
+          Interaction,
+          "Espera a que el bot termine de procesar tu reclamo anterior antes de iniciar otro nuevamente"
+        );
+
       const faucet = await getFaucet(faucetId);
 
       if (!faucet)
-        return EphemeralMessageResponse(
+        return FollowUpEphemeralResponse(
           Interaction,
           "El faucet que intentas reclamar no se encuentra en la base de datos"
         );
 
       if (faucet.claimers_ids.includes(Interaction.user.id))
-        return EphemeralMessageResponse(
+        return FollowUpEphemeralResponse(
           Interaction,
           "Solo puedes reclamar el premio una vez"
         );
 
       if (faucet.closed)
-        return EphemeralMessageResponse(
+        return FollowUpEphemeralResponse(
           Interaction,
           "El faucet que intentas reclamar fue cerrado por su autor"
         );
 
-      if (faucet.discord_id === Interaction.user.id)
-        return EphemeralMessageResponse(
-          Interaction,
-          "No puedes reclamar tu propio faucet"
-        );
+      // if (faucet.discord_id === Interaction.user.id)
+      //   return FollowUpEphemeralResponse(
+      //     Interaction,
+      //     "No puedes reclamar tu propio faucet"
+      //   );
 
       const { whitelist, blacklist } = await getFormattedRoleLists(
         Interaction.guild.id
@@ -147,8 +147,8 @@ module.exports = {
           userRoles.find((rol) => whitelist.includes(rol.id));
 
         if (!hasRoleAllowed) {
-          let resOutput = dedent(` 
-          No tienes ningún rol que te habilite a reclamar faucets, los roles permitidos son: 
+          let resOutput = dedent(`
+          No tienes ningún rol que te habilite a reclamar faucets, los roles permitidos son:
           `);
 
           whitelist.forEach((role_id) => {
@@ -159,7 +159,7 @@ module.exports = {
             resOutput = dedent(resOutput);
           });
 
-          return EphemeralMessageResponse(Interaction, resOutput);
+          return FollowUpEphemeralResponse(Interaction, resOutput);
         }
 
         const hasRoleDisallowed = userRoles.find((rol) =>
@@ -167,7 +167,7 @@ module.exports = {
         );
 
         if (hasRoleDisallowed)
-          return EphemeralMessageResponse(
+          return FollowUpEphemeralResponse(
             Interaction,
             `No puedes reclamar debido a que posees el rol ${hasRoleDisallowed.toString()} que se encuentra en la lista de roles que no tienen permitido reclamar un faucet.`
           );
@@ -188,7 +188,7 @@ module.exports = {
         );
 
         if (withdrawLink && withdrawLink.uses <= faucet.claimers_ids.length)
-          return EphemeralMessageResponse(
+          return FollowUpEphemeralResponse(
             Interaction,
             "El faucet ya fue reclamado en su totalidad."
           );
@@ -220,12 +220,12 @@ module.exports = {
           faucetDebouncedUpdate[faucetId] = setTimeout(
             () =>
               update(faucet._id, fieldInfo, withdrawLink, Interaction.message),
-            500
+            200
           );
 
           const new_user_details = await userWallet.sdk.getWalletDetails();
 
-          EphemeralMessageResponse(
+          FollowUpEphemeralResponse(
             Interaction,
             `Recibiste ${
               withdrawLink.max_withdrawable
@@ -235,13 +235,12 @@ module.exports = {
           );
         }
       } catch (err) {
-        EphemeralMessageResponse(
+        FollowUpEphemeralResponse(
           Interaction,
           "Ocurrió un error al reclamar la factura. \nEl faucet fue reclamado en su totalidad o el usuario que está regalando los fondos se ha quedado sin saldo suficiente para entregarte el premio."
         );
       }
     }
-
     usersClaiming[Interaction.user.id] = false;
   },
 };

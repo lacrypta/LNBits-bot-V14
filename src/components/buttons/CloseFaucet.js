@@ -4,8 +4,8 @@ const { getFaucet, closeFaucet } = require("../../handlers/faucet.js");
 const { AuthorConfig } = require("../../utils/helperConfig.js");
 
 const {
-  EphemeralMessageResponse,
   getFormattedWallet,
+  FollowUpEphemeralResponse,
 } = require("../../utils/helperFunctions.js");
 
 /*
@@ -19,6 +19,7 @@ module.exports = {
    * @param {ButtonInteraction} Interaction
    */
   run: async (client, Interaction) => {
+    await Interaction.deferReply({ ephemeral: true });
     const footerContent = Interaction.message.embeds[0]?.footer?.text;
     const faucetSubStr = footerContent ? footerContent.indexOf(" ") : -1;
 
@@ -31,7 +32,7 @@ module.exports = {
       const faucet = await getFaucet(faucetId);
 
       if (faucet && faucet.discord_id !== Interaction.user.id)
-        return EphemeralMessageResponse(
+        return FollowUpEphemeralResponse(
           Interaction,
           "No puedes cerrar un faucet que no te pertenece"
         );
@@ -47,8 +48,6 @@ module.exports = {
           faucet.withdraw_id,
           Interaction.user.id
         );
-
-        await Interaction.deferReply({ ephemeral: true });
 
         if (deletedLink && deletedLink.success) {
           const closedFaucet = await closeFaucet(faucetId);
@@ -77,17 +76,17 @@ module.exports = {
               components: [row],
             });
 
-            return EphemeralMessageResponse(
+            return FollowUpEphemeralResponse(
               Interaction,
               "Cerraste el faucet exitosamente"
             );
           }
         }
 
-        EphemeralMessageResponse(Interaction, "Ocurrió un error.");
+        FollowUpEphemeralResponse(Interaction, "Ocurrió un error.");
       } catch (err) {
         console.log(err);
-        EphemeralMessageResponse(Interaction, "Ocurrió un error.");
+        FollowUpEphemeralResponse(Interaction, "Ocurrió un error.");
       }
     }
   },
