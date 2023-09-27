@@ -129,11 +129,11 @@ module.exports = {
           "El faucet que intentas reclamar fue cerrado por su autor"
         );
 
-      // if (faucet.discord_id === Interaction.user.id)
-      //   return FollowUpEphemeralResponse(
-      //     Interaction,
-      //     "No puedes reclamar tu propio faucet"
-      //   );
+      if (faucet.discord_id === Interaction.user.id)
+        return FollowUpEphemeralResponse(
+          Interaction,
+          "No puedes reclamar tu propio faucet"
+        );
 
       const { whitelist, blacklist } = await getFormattedRoleLists(
         Interaction.guild.id
