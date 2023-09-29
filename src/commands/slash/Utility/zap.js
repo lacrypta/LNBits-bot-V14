@@ -3,7 +3,6 @@ const { SlashCommandBuilder } = require("discord.js");
 const {
   validateAmountAndBalance,
   getFormattedWallet,
-  FollowUpEphemeralResponse,
 } = require("../../../utils/helperFunctions");
 const { updateUserRank } = require("../../../handlers/donate");
 
@@ -33,7 +32,6 @@ module.exports = {
    */
   run: async (client, Interaction) => {
     try {
-      await Interaction.deferReply();
       const receiver = Interaction.options.get(`user`);
       const amount = Interaction.options.get(`monto`);
       const message = Interaction.options.get(`message`)
@@ -41,10 +39,10 @@ module.exports = {
         : { value: `Envío de sats vía La Crypta` };
 
       if (amount.value <= 0)
-        return FollowUpEphemeralResponse(
-          Interaction,
-          "No se permiten saldos negativos"
-        );
+        return Interaction.reply({
+          content: "No se permiten saldos negativos",
+          ephemeral: true,
+        });
 
       const sats = amount.value;
 
@@ -63,16 +61,16 @@ module.exports = {
       );
 
       if (!senderWallet.id || !receiverWallet.id)
-        return FollowUpEphemeralResponse(
-          Interaction,
-          "Ocurrió un error al obtener la información del usuario"
-        );
+        return Interaction.reply({
+          content: "Ocurrió un error al obtener la información del usuario",
+          ephemeral: true,
+        });
 
       if (senderWallet.id === receiverWallet.id)
-        return FollowUpEphemeralResponse(
-          Interaction,
-          "No puedes enviarte sats a vos mismo."
-        );
+        return Interaction.reply({
+          content: "No puedes enviarte sats a vos mismo.",
+          ephemeral: true,
+        });
 
       const isValidAmount = validateAmountAndBalance(
         Number(sats),
@@ -80,7 +78,10 @@ module.exports = {
       );
 
       if (!isValidAmount.status)
-        return FollowUpEphemeralResponse(Interaction, isValidAmount.content);
+        return Interaction.reply({
+          content: isValidAmount.content,
+          ephemeral: true,
+        });
 
       const invoiceDetails = await receiverWallet.sdk.createInvote(
         sats,
@@ -94,13 +95,18 @@ module.exports = {
       if (invoicePaymentDetails) {
         await updateUserRank(Interaction.user.id, "comunidad", sats);
 
-        await Interaction.editReply({
+        await Interaction.reply({
           content: `${Interaction.user.toString()} envió ${sats} satoshis a ${receiverData.toString()}`,
+          ephemeral: false,
         });
       }
     } catch (err) {
       console.log(err);
-      return FollowUpEphemeralResponse(Interaction, "Ocurrió un error");
+      return Interaction.reply({
+        content: "Ocurrió un error",
+        ephemeral: true,
+      });
+      // return FollowUpEphemeralResponse(Interaction, "Ocurrió un error");
     }
   },
 };
