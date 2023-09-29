@@ -3,7 +3,7 @@ const { SlashCommandBuilder } = require("discord.js");
 const {
   validateAmountAndBalance,
   getFormattedWallet,
-  FollowUpEphemeralResponse,
+  EphemeralMessageResponse,
 } = require("../../../utils/helperFunctions");
 const { updateUserRank } = require("../../../handlers/donate");
 
@@ -33,7 +33,7 @@ module.exports = {
    */
   run: async (client, Interaction) => {
     try {
-      await Interaction.deferReply();
+      await Interaction.deferReply({ ephemeral: true });
       const receiver = Interaction.options.get(`user`);
       const amount = Interaction.options.get(`monto`);
       const message = Interaction.options.get(`message`)
@@ -41,13 +41,13 @@ module.exports = {
         : { value: `Envío de sats vía La Crypta` };
 
       if (amount.value <= 0)
-        return FollowUpEphemeralResponse(
+        return EphemeralMessageResponse(
           Interaction,
           "No se permiten saldos negativos"
         );
 
       const sats = amount.value;
-    
+
       const receiverData = await Interaction.guild.members.fetch(
         receiver.user.id
       );
@@ -63,13 +63,13 @@ module.exports = {
       );
 
       if (!senderWallet.id || !receiverWallet.id)
-        return FollowUpEphemeralResponse(
+        return EphemeralMessageResponse(
           Interaction,
           "Ocurrió un error al obtener la información del usuario"
         );
 
       if (senderWallet.id === receiverWallet.id)
-        return FollowUpEphemeralResponse(
+        return EphemeralMessageResponse(
           Interaction,
           "No puedes enviarte sats a vos mismo."
         );
@@ -80,7 +80,7 @@ module.exports = {
       );
 
       if (!isValidAmount.status)
-        return FollowUpEphemeralResponse(Interaction, isValidAmount.content);
+        return EphemeralMessageResponse(Interaction, isValidAmount.content);
 
       const invoiceDetails = await receiverWallet.sdk.createInvote(
         sats,
@@ -94,13 +94,14 @@ module.exports = {
       if (invoicePaymentDetails) {
         await updateUserRank(Interaction.user.id, "comunidad", sats);
 
-        await Interaction.editReply({
+        await Interaction.deleteReply();
+        await Interaction.channel.send({
           content: `${Interaction.user.toString()} envió ${sats} satoshis a ${receiverData.toString()}`,
         });
       }
     } catch (err) {
       console.log(err);
-      return FollowUpEphemeralResponse(Interaction, "Ocurrió un error");
+      return EphemeralMessageResponse(Interaction, "Ocurrió un error");
     }
   },
 };

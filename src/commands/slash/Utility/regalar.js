@@ -12,7 +12,7 @@ const { createFaucet } = require("../../../handlers/faucet.js");
 const {
   validateAmountAndBalance,
   getFormattedWallet,
-  FollowUpEphemeralResponse,
+  EphemeralMessageResponse,
 } = require("../../../utils/helperFunctions");
 const { AuthorConfig } = require("../../../utils/helperConfig");
 
@@ -42,12 +42,12 @@ module.exports = {
    * @param {[]} args
    */
   run: async (client, Interaction) => {
-    await Interaction.deferReply();
+    await Interaction.deferReply({ ephemeral: true });
     const amount = Interaction.options.get(`monto`);
     const uses = Interaction.options.get(`usos`);
 
     if (!amount || !uses || amount.value <= 0 || uses.value <= 0)
-      return FollowUpEphemeralResponse(
+      return EphemeralMessageResponse(
         Interaction,
         "No puedes usar números negativos o flotantes"
       );
@@ -55,7 +55,7 @@ module.exports = {
     const satsForUser = Number((amount.value / uses.value).toFixed(0));
 
     if (satsForUser < 1)
-      return FollowUpEphemeralResponse(
+      return EphemeralMessageResponse(
         Interaction,
         `Ocurrió un error en la división cantidad de sats / usuarios`
       );
@@ -72,7 +72,7 @@ module.exports = {
       );
 
       if (!isValidAmount.status)
-        return FollowUpEphemeralResponse(Interaction, isValidAmount.content);
+        return EphemeralMessageResponse(Interaction, isValidAmount.content);
 
       const ext = new Extensions(userWallet.user);
       await ext.enable(`withdraw`);
@@ -125,14 +125,15 @@ module.exports = {
             .setStyle(2),
         ]);
 
-        Interaction.editReply({
+        await Interaction.deleteReply();
+        Interaction.channel.send({
           embeds: [embed],
           components: [row],
         });
       }
     } catch (err) {
       console.log(err);
-      return FollowUpEphemeralResponse(Interaction, "Ocurrió un error");
+      return EphemeralMessageResponse(Interaction, "Ocurrió un error");
     }
   },
 };

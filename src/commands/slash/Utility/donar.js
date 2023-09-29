@@ -2,7 +2,6 @@ const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
 
 const { formatter } = require("../../../utils/helperFormatter.js");
 const { updateUserRank } = require("../../../handlers/donate.js");
-const { AuthorConfig } = require("../../../utils/helperConfig.js");
 const {
   validateAmountAndBalance,
   EphemeralMessageResponse,
@@ -26,6 +25,7 @@ module.exports = {
    */
   run: async (client, Interaction) => {
     try {
+      await Interaction.deferReply({ ephemeral: true });
       const userWallet = await getFormattedWallet(
         Interaction.user.username,
         Interaction.user.id
@@ -40,8 +40,6 @@ module.exports = {
 
       if (!isValidAmount.status)
         return EphemeralMessageResponse(Interaction, isValidAmount.content);
-
-      await Interaction.deferReply();
 
       const outgoingInvoice = await userWallet.sdk.createOutgoingInvoice(
         process.env.POOL_ADDRESS,
@@ -62,7 +60,10 @@ module.exports = {
 
           const embed = new EmbedBuilder()
             .setColor(`#0099ff`)
-            .setAuthor(AuthorConfig)
+            .setAuthor({
+              name: `${Interaction.user.globalName}`,
+              iconURL: `https://cdn.discordapp.com/avatars/${Interaction.user.id}/${Interaction.user.avatar}`,
+            })
             .setURL(`https://wallet.lacrypta.ar`)
             .addFields(
               {
@@ -76,13 +77,13 @@ module.exports = {
                 name: "Total donado",
                 value:
                   updatedRank && updatedRank.amount
-                    ? `${updatedRank.amount}`
+                    ? `${formatter().format(updatedRank.amount.toFixed(0))}`
                     : "0",
               }
             );
 
-          Interaction.editReply({ embeds: [embed] });
-          return;
+          await Interaction.deleteReply();
+          return Interaction.channel.send({ embeds: [embed] });
         }
       }
     } catch (err) {
