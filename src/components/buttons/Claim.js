@@ -240,7 +240,7 @@ module.exports = {
       } catch (err) {
         FollowUpEphemeralResponse(
           Interaction,
-          "Ocurrió un error al reclamar la factura. \nEl faucet fue reclamado en su totalidad o el usuario que está regalando los fondos se ha quedado sin saldo suficiente para entregarte el premio."
+          "Ocurrió un error al reclamar la factura. \nEl faucet fue cerrado, reclamado en su totalidad o el usuario que está regalando los fondos se ha quedado sin saldo suficiente para entregarte el premio."
         );
       }
     }

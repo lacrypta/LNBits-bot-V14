@@ -4,8 +4,8 @@ const { formatter } = require("../../../utils/helperFormatter.js");
 const { updateUserRank } = require("../../../handlers/donate.js");
 const {
   validateAmountAndBalance,
-  EphemeralMessageResponse,
   getFormattedWallet,
+  FollowUpEphemeralResponse,
 } = require("../../../utils/helperFunctions.js");
 
 module.exports = {
@@ -25,7 +25,7 @@ module.exports = {
    */
   run: async (client, Interaction) => {
     try {
-      await Interaction.deferReply({ ephemeral: true });
+      await Interaction.deferReply();
       const userWallet = await getFormattedWallet(
         Interaction.user.username,
         Interaction.user.id
@@ -39,7 +39,7 @@ module.exports = {
       );
 
       if (!isValidAmount.status)
-        return EphemeralMessageResponse(Interaction, isValidAmount.content);
+        return FollowUpEphemeralResponse(Interaction, isValidAmount.content);
 
       const outgoingInvoice = await userWallet.sdk.createOutgoingInvoice(
         process.env.POOL_ADDRESS,
@@ -77,18 +77,17 @@ module.exports = {
                 name: "Total donado",
                 value:
                   updatedRank && updatedRank.amount
-                    ? `${formatter().format(updatedRank.amount.toFixed(0))}`
+                    ? `${formatter(0, 0).format(updatedRank.amount)}`
                     : "0",
               }
             );
 
-          await Interaction.deleteReply();
-          return Interaction.channel.send({ embeds: [embed] });
+          return Interaction.editReply({ embeds: [embed] });
         }
       }
     } catch (err) {
       console.log(err);
-      return EphemeralMessageResponse(Interaction, "Ocurrió un error");
+      return FollowUpEphemeralResponse(Interaction, "Ocurrió un error");
     }
   },
 };

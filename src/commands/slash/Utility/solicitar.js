@@ -9,7 +9,7 @@ const { AuthorConfig } = require("../../../utils/helperConfig");
 const { formatter } = require("../../../utils/helperFormatter");
 const {
   getFormattedWallet,
-  EphemeralMessageResponse,
+  FollowUpEphemeralResponse,
 } = require("../../../utils/helperFunctions");
 
 module.exports = {
@@ -34,16 +34,15 @@ module.exports = {
    * @param {[]} args
    */
   run: async (client, Interaction) => {
+    await Interaction.deferReply();
     const amount = Interaction.options.get(`monto`);
     const description = Interaction.options.get(`descripcion`);
 
     if (amount.value <= 0)
-      return EphemeralMessageResponse(
+      return FollowUpEphemeralResponse(
         Interaction,
         "No se permiten saldos negativos"
       );
-
-    await Interaction.deferReply();
 
     try {
       const { sdk } = await getFormattedWallet(
@@ -81,7 +80,7 @@ module.exports = {
       });
     } catch (err) {
       console.log(err);
-      return EphemeralMessageResponse(Interaction, "Ocurrió un error");
+      return FollowUpEphemeralResponse(Interaction, "Ocurrió un error");
     }
   },
 };
